@@ -4,6 +4,8 @@ A serious tool with dollops of humour because why not to test and visualize prom
 
 It might be like a prophylactic for LLMs. But no protection is 100% safe...
 
+**Built by humans.**
+
 ![Prompt Injectionator by Viewyonder](/images/prompt-injectionator-hld.png "Prompt Injectionator")
 
 # What is Prompt Injectionator?
