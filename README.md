@@ -5,6 +5,12 @@
 
 **Built by meatbags.**
 
+## License
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Notice
+Please include the [NOTICE](NOTICE.txt) file when distributing this software
+
 ![Prompt Injectionator by Viewyonder](/images/prompt-injectionator-hld.png "Prompt Injectionator")
 
 A serious tool with dollops of humour because why not to test and visualize prompt injection attacks. Test the prompts, test the mitigations (hooks in send and receive), test the app, test the LLM. Learn. Maybe do it for real. Doesn't take itself seriously.

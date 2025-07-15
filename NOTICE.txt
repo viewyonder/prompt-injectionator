@@ -1,0 +1,3 @@
+"Prompt Injectionator" - Developed by Steve Chambers @ Viewyonder.
+Copyright 2025 Viewyonder. All rights reserved.
+For more information, visit https://viewyonder.com/prompt-injectionator.
