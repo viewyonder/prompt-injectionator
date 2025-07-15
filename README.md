@@ -1,12 +1,21 @@
 # Prompt Injectionator
 
+"Don't be a prompt injection hater!
+-- Get Prompt Injectionator!"
+
+**Built by meatbags.**
+
+![Prompt Injectionator by Viewyonder](/images/prompt-injectionator-hld.png "Prompt Injectionator")
+
 A serious tool with dollops of humour because why not to test and visualize prompt injection attacks. Test the prompts, test the mitigations (hooks in send and receive), test the app, test the LLM. Learn. Maybe do it for real. Doesn't take itself seriously.
 
 It might be like a prophylactic for LLMs. But no protection is 100% safe...
 
-**Built by humans.**
+...in fact, one of the main reasons to create this tool is to help people learn and to demonstrate that prompt injections come in many flavours, as well articulated by Georg Zoeller here:
 
-![Prompt Injectionator by Viewyonder](/images/prompt-injectionator-hld.png "Prompt Injectionator")
+> Writing pseudo code reliably defeats ChatGPT safety guardrails...if your app relies on guardrails - for example education chatbots guarded against risks like suicide ideation - good luck because you can’t actually make it safe unless you’re removing the AI to a point where you have to ask why you’re using an LLM in the first place.
+>
+> [More from Georg](https://www.linkedin.com/posts/georgzoeller_writing-pseudo-code-reliably-defeats-chatgpt-ugcPost-7350811543187451926-dptg?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAA9PQEBzCJVWyiGXosRGuW2vERmyriK7tM)
 
 # What is Prompt Injectionator?
 
@@ -536,8 +545,7 @@ config: {
 
 rules: [
 
-    "\\b\\d{3}-\\d{2}-\\d{4}\\b"
-
+"\\b\\d{3}-\\d{2}-\\d{4}\\b"
 ],
 
 failOnMatch: true
@@ -642,8 +650,7 @@ config: {
 
 rules: [
 
-    "\\b\\d{3}-\\d{2}-\\d{4}\\b"
-
+"\\b\\d{3}-\\d{2}-\\d{4}\\b"
 ],
 
 failOnMatch: true
