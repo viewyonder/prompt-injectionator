@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB CRUD Learner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            bottom: 40px;
+        }
+        .toast.success {
+            background-color: #28a745;
+        }
+        .toast.error {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">IndexedDB Learning App</h1>
+            <p class="text-lg text-gray-600 mt-2">A simple interface to learn C.R.U.D. operations.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+            <!-- Left Column: Actions -->
+            <div class="bg-white p-6 rounded-lg shadow-md space-y-6">
+                
+                <!-- Create / Update Item -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-3 border-b pb-2">Create / Update Item</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="item-id-update" class="block text-sm font-medium text-gray-700">ID (for updating)</label>
+                            <input type="text" id="item-id-update" placeholder="Leave empty to create new" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="item-text" class="block text-sm font-medium text-gray-700">Item Text</label>
+                            <input type="text" id="item-text" placeholder="Enter some text..." required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <button id="add-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Save Item</button>
+                    </div>
+                </div>
+
+                <!-- Read / Delete Item -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-3 border-b pb-2">Read / Delete Item</h2>
+                     <div class="space-y-4">
+                        <div>
+                            <label for="item-id-action" class="block text-sm font-medium text-gray-700">Item ID</label>
+                            <input type="number" id="item-id-action" placeholder="Enter ID to read or delete" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div class="flex space-x-4">
+                            <button id="read-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Read</button>
+                            <button id="delete-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Database Content -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center border-b pb-2 mb-4">
+                    <h2 class="text-2xl font-semibold">Items in Database</h2>
+                    <button id="clear-btn" class="py-1 px-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">Clear All</button>
+                </div>
+                <div id="item-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    <!-- Items will be dynamically inserted here -->
+                    <p class="text-gray-500">No items in the database yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // --- DATABASE SETUP ---
+        const DB_NAME = 'IndexedDBLearningDB';
+        const STORE_NAME = 'items';
+        let db;
+
+        // This function is called when the page loads.
+        function initDB() {
+            // 1. Open a request to the database.
+            // The second argument is the version number. If the database doesn't exist or the version is higher than the existing one, `onupgradeneeded` will be triggered.
+            const request = indexedDB.open(DB_NAME, 1);
+
+            // 2. Handle errors during the connection process.
+            request.onerror = (event) => {
+                showToast(`Database error: ${event.target.errorCode}`, 'error');
+            };
+
+            // 3. Handle successful connection.
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                console.log('Database opened successfully.');
+                // Display all items once the DB is ready.
+                displayAllItems();
+            };
+
+            // 4. This event is triggered only when the DB is created for the first time or the version number changes.
+            // This is where you define the schema (the "object stores" which are like tables).
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+
+                // Create an object store to hold information about our items.
+                // We're using `id` as the keyPath and enabling autoIncrement, so IndexedDB will manage the unique IDs for us.
+                const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+
+                // You can also create indexes to search/query by other properties.
+                // Here, we create an index on the 'text' property. We won't use it in this simple app, but it's good practice.
+                objectStore.createIndex('text', 'text', { unique: false });
+                
+                console.log('Object store created successfully.');
+            };
+        }
+
+        // --- CRUD OPERATIONS ---
+
+        // CREATE / UPDATE
+        function addItem() {
+            const text = document.getElementById('item-text').value;
+            const idInput = document.getElementById('item-id-update').value;
+
+            if (!text) {
+                showToast('Item text cannot be empty.', 'error');
+                return;
+            }
+
+            // A transaction is a wrapper around a series of operations, ensuring data integrity.
+            // 'readwrite' mode allows us to add, update, and delete data.
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+
+            const item = { text: text };
+            // If an ID is provided, we are UPDATING an existing item.
+            // We must convert the ID from a string to a number.
+            if (idInput) {
+                item.id = parseInt(idInput, 10);
+            }
+
+            // The `put` method handles both creating (if key doesn't exist) and updating (if key exists).
+            // We use `put` for updates and `add` for creation to be explicit.
+            const request = idInput ? objectStore.put(item) : objectStore.add(item);
+            
+            request.onsuccess = () => {
+                showToast(`Item ${idInput ? 'updated' : 'added'} successfully!`, 'success');
+                document.getElementById('item-text').value = '';
+                document.getElementById('item-id-update').value = '';
+            };
+
+            request.onerror = (event) => {
+                showToast(`Error adding/updating item: ${event.target.error}`, 'error');
+            };
+
+            // When the transaction is complete, refresh the list of items.
+            transaction.oncomplete = () => {
+                displayAllItems();
+            };
+        }
+
+        // READ ALL
+        function displayAllItems() {
+            const itemList = document.getElementById('item-list');
+            itemList.innerHTML = ''; // Clear the current list
+
+            const objectStore = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME);
+            
+            // openCursor creates a cursor that we can use to iterate over all the records in the store.
+            objectStore.openCursor().onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    // Create the HTML elements for each item
+                    const listItem = document.createElement('div');
+                    listItem.className = 'p-3 bg-gray-50 border rounded-md flex justify-between items-center';
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'text-gray-700';
+                    textSpan.textContent = `ID: ${cursor.key}, Text: ${cursor.value.text}`;
+                    
+                    listItem.appendChild(textSpan);
+                    itemList.appendChild(listItem);
+
+                    // Move to the next record in the store
+                    cursor.continue();
+                } else {
+                    // This block is executed when the cursor has finished.
+                    // If the list is still empty, show the "empty" message.
+                    if (!itemList.firstChild) {
+                        itemList.innerHTML = '<p class="text-gray-500">No items in the database yet.</p>';
+                    }
+                }
+            };
+        }
+
+        // READ ONE
+        function readItem() {
+            const id = parseInt(document.getElementById('item-id-action').value, 10);
+            if (isNaN(id)) {
+                showToast('Please enter a valid ID to read.', 'error');
+                return;
+            }
+
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            // The `get` method retrieves a single record by its key.
+            const request = objectStore.get(id);
+
+            request.onerror = (event) => {
+                showToast(`Error reading item: ${event.target.error}`, 'error');
+            };
+
+            request.onsuccess = (event) => {
+                const item = event.target.result;
+                if (item) {
+                    showToast(`Found Item ${item.id}: "${item.text}"`, 'success');
+                } else {
+                    showToast(`Item with ID ${id} not found.`, 'error');
+                }
+            };
+        }
+
+        // DELETE
+        function deleteItem() {
+            const id = parseInt(document.getElementById('item-id-action').value, 10);
+            if (isNaN(id)) {
+                showToast('Please enter a valid ID to delete.', 'error');
+                return;
+            }
+
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            // The `delete` method removes a record by its key.
+            const request = objectStore.delete(id);
+
+            request.onsuccess = () => {
+                showToast(`Item with ID ${id} deleted successfully.`, 'success');
+                document.getElementById('item-id-action').value = '';
+            };
+
+            request.onerror = (event) => {
+                showToast(`Error deleting item: ${event.target.error}`, 'error');
+            };
+
+            transaction.oncomplete = () => {
+                displayAllItems();
+            };
+        }
+
+        // CLEAR ALL
+        function clearAllItems() {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            // The `clear` method removes all records from the object store.
+            const request = objectStore.clear();
+
+            request.onsuccess = () => {
+                showToast('All items have been cleared.', 'success');
+            };
+
+            request.onerror = (event) => {
+                showToast(`Error clearing items: ${event.target.error}`, 'error');
+            };
+
+            transaction.oncomplete = () => {
+                displayAllItems();
+            };
+        }
+
+        // --- UI & EVENT LISTENERS ---
+        
+        // Helper function for showing toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`; // Reset classes and add new ones
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // Attach event listeners when the DOM is fully loaded.
+        document.addEventListener('DOMContentLoaded', () => {
+            initDB();
+
+            document.getElementById('add-btn').addEventListener('click', addItem);
+            document.getElementById('read-btn').addEventListener('click', readItem);
+            document.getElementById('delete-btn').addEventListener('click', deleteItem);
+            document.getElementById('clear-btn').addEventListener('click', clearAllItems);
+        });
+
+    </script>
+</body>
+</html>
