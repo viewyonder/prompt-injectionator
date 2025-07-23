@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Injection Card Carousel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .carousel-container {
+            perspective: 1000px;
+            overflow: hidden;
+        }
+        
+        .carousel-track {
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-style: preserve-3d;
+        }
+        
+        .carousel-card {
+            flex-shrink: 0;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            transform-origin: center;
+        }
+        
+        .carousel-card.center {
+            transform: scale(1.1) translateZ(50px);
+            z-index: 10;
+        }
+        
+        .carousel-card.side {
+            transform: scale(0.85) translateZ(-20px);
+            opacity: 0.6;
+        }
+        
+        .carousel-card.far {
+            transform: scale(0.7) translateZ(-40px);
+            opacity: 0.3;
+        }
+        
+        .carousel-nav {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-nav:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .carousel-nav:active {
+            transform: scale(0.95);
+        }
+        
+        .injection-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .injection-card.selected {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+            border-color: #ff6b35;
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        }
+        
+        .injection-card:hover:not(.selected) {
+            border-color: #adb5bd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">INJECTIONS</h1>
+            <p class="text-gray-600">Select an injection type from the carousel below</p>
+        </div>
+        
+        <!-- Carousel Container -->
+        <div class="relative">
+            <!-- Navigation Buttons -->
+            <button id="prevBtn" class="carousel-nav absolute left-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            
+            <button id="nextBtn" class="carousel-nav absolute right-4 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+            
+            <!-- Carousel -->
+            <div class="carousel-container h-80 flex items-center">
+                <div id="carouselTrack" class="carousel-track w-full">
+                    <!-- Cards will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex justify-center space-x-4 mt-8">
+            <button id="createBtn" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Create...
+            </button>
+            <button id="updateBtn" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Update...
+            </button>
+            <button id="deleteBtn" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Delete
+            </button>
+        </div>
+        
+        <!-- Selected Card Info -->
+        <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
+            <h3 class="text-xl font-semibold mb-2">Selected Injection:</h3>
+            <div id="selectedInfo" class="text-gray-600">
+                <p><strong>Type:</strong> <span id="selectedType">Direct Keyword</span></p>
+                <p><strong>Description:</strong> <span id="selectedDesc">Direct keyword injection for targeted content</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class InjectionCarousel {
+            constructor() {
+                this.currentIndex = 0;
+                this.cards = [
+                    { 
+                        type: 'DIRECT PERSONA', 
+                        description: 'Persona-based injection for targeted messaging',
+                        icon: '👤'
+                    },
+                    { 
+                        type: 'DIRECT KEYWORD', 
+                        description: 'Direct keyword injection for targeted content',
+                        icon: '🎯'
+                    },
+                    { 
+                        type: 'INDIRECT WEBSITE', 
+                        description: 'Indirect website-based injection method',
+                        icon: '🌐'
+                    },
+                    { 
+                        type: 'FILTER', 
+                        description: 'Content filtering and processing injection',
+                        icon: '🔍'
+                    },
+                    { 
+                        type: 'CONTEXT', 
+                        description: 'Context-aware injection system',
+                        icon: '📝'
+                    }
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.renderCards();
+                this.bindEvents();
+                this.updateCarousel();
+                this.updateSelectedInfo();
+            }
+            
+            renderCards() {
+                const track = $('#carouselTrack');
+                track.empty();
+                
+                this.cards.forEach((card, index) => {
+                    const cardElement = $(`
+                        <div class="carousel-card w-64 mx-4" data-index="${index}">
+                            <div class="injection-card h-48 rounded-xl p-6 flex flex-col items-center justify-center text-center">
+                                <div class="text-4xl mb-4">${card.icon}</div>
+                                <h3 class="text-lg font-bold mb-2">${card.type}</h3>
+                                <p class="text-sm opacity-80">${card.description}</p>
+                            </div>
+                        </div>
+                    `);
+                    track.append(cardElement);
+                });
+            }
+            
+            bindEvents() {
+                $('#prevBtn').on('click', () => this.prev());
+                $('#nextBtn').on('click', () => this.next());
+                
+                // Click on cards to select them
+                $(document).on('click', '.carousel-card', (e) => {
+                    const index = parseInt($(e.currentTarget).data('index'));
+                    this.goToIndex(index);
+                });
+                
+                // Action buttons
+                $('#createBtn').on('click', () => this.handleAction('create'));
+                $('#updateBtn').on('click', () => this.handleAction('update'));
+                $('#deleteBtn').on('click', () => this.handleAction('delete'));
+                
+                // Keyboard navigation
+                $(document).on('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') this.prev();
+                    if (e.key === 'ArrowRight') this.next();
+                });
+            }
+            
+            prev() {
+                this.currentIndex = (this.currentIndex - 1 + this.cards.length) % this.cards.length;
+                this.updateCarousel();
+                this.updateSelectedInfo();
+            }
+            
+            next() {
+                this.currentIndex = (this.currentIndex + 1) % this.cards.length;
+                this.updateCarousel();
+                this.updateSelectedInfo();
+            }
+            
+            goToIndex(index) {
+                this.currentIndex = index;
+                this.updateCarousel();
+                this.updateSelectedInfo();
+            }
+            
+            updateCarousel() {
+                const cards = $('.carousel-card');
+                const track = $('#carouselTrack');
+                const cardWidth = 256 + 32; // card width + margin
+                const containerWidth = track.parent().width();
+                const centerOffset = (containerWidth - cardWidth) / 2;
+                
+                // Calculate the transform to center the current card
+                const translateX = centerOffset - (this.currentIndex * cardWidth);
+                track.css('transform', `translateX(${translateX}px)`);
+                
+                // Update card styles based on position
+                cards.each((index, card) => {
+                    const $card = $(card);
+                    const distance = Math.abs(index - this.currentIndex);
+                    
+                    // Remove all position classes
+                    $card.removeClass('center side far');
+                    $card.find('.injection-card').removeClass('selected');
+                    
+                    if (distance === 0) {
+                        // Center card
+                        $card.addClass('center');
+                        $card.find('.injection-card').addClass('selected');
+                    } else if (distance === 1) {
+                        // Adjacent cards
+                        $card.addClass('side');
+                    } else {
+                        // Far cards
+                        $card.addClass('far');
+                    }
+                });
+            }
+            
+            updateSelectedInfo() {
+                const selectedCard = this.cards[this.currentIndex];
+                $('#selectedType').text(selectedCard.type);
+                $('#selectedDesc').text(selectedCard.description);
+            }
+            
+            handleAction(action) {
+                const selectedCard = this.cards[this.currentIndex];
+                alert(`${action.toUpperCase()} action triggered for: ${selectedCard.type}`);
+            }
+        }
+        
+        // Initialize the carousel when the document is ready
+        $(document).ready(() => {
+            new InjectionCarousel();
+        });
+    </script>
+</body>
+</html>
