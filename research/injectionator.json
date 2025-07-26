@@ -1,0 +1,88 @@
+{
+  "promptInjectionatorVersion": "1.0.0",
+  "description": "Defines the user's Prompt Injectionator configuration, including enabled injections, mitigations, and backend services.",
+  "author": "Steve Chambers",
+  "githubRepo": "https://github.com/viewyonder/prompt-injectionator",
+  "license": {
+    "type": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "copyright": "Copyright (c) 2025 Viewyonder. All rights reserved. Licensed under the Apache2 License."
+  },
+  "injections": {
+    "Role Play": {
+      "enabled": true,
+      "description": "Techniques that instruct the LLM to act as a different persona."
+    },
+    "Prompt Extraction": {
+      "enabled": true,
+      "description": "Attacks aimed at revealing the original system prompt."
+    },
+    "Adversarial Suffix": {
+      "enabled": true,
+      "description": "Appending malicious strings to a prompt to bypass filters."
+    },
+    "Context Switch": {
+      "enabled": false,
+      "description": "Shifting the context of the conversation to a malicious topic."
+    },
+    "Token Smuggling": {
+      "enabled": true,
+      "description": "Using tokenization quirks to hide malicious instructions."
+    },
+    "Indirect Injection": {
+      "enabled": true,
+      "description": "Injecting prompts from external, untrusted data sources."
+    }
+  },
+  "mitigations": {
+    "MyInstruction": {
+      "Type": "Instruction",
+      "Implementation": {
+        "detail": "Define clear, explicit instructions for the LLM's behavior."
+      }
+    },
+    "MySanitization": {
+      "Type": "Sanitization",
+      "Implementation": {
+        "detail": "Filter and clean user inputs to remove malicious content."
+      }
+    },
+    "MySandbox": {
+      "Type": "Sandbox",
+      "Implementation": {
+        "detail": "Isolate the execution environment of the LLM."
+      }
+    },
+    "MyGuard": {
+      "Type": "Instruction",
+      "Implementation": {
+        "detail": "Use a secondary LLM or model to check prompts for safety."
+      }
+    }
+  },
+  "backends": {
+    "MyAPI": {
+      "url": "http://localhost:8080/v1/chat/completions",
+      "auth": {
+        "type": "bearer",
+        "token": "your-api-token-here"
+      }
+    },
+    "MyLLM": {
+      "provider": "anthropic",
+      "url": "https://api.anthropic.com/v1/messages",
+      "userid": "abc-user-123",
+      "apikey": "sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  },
+  "observability": {
+    "logging": {
+      "level": "info",
+      "destination": "/var/log/prompt-injectionator.log"
+    },
+    "queue": {
+      "provider": "rabbitmq",
+      "url": "amqp://guest:guest@localhost:5672/"
+    }
+  }
+}
