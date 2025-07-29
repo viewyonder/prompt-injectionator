@@ -6,6 +6,248 @@ You need a serialization/deserialization strategy that converts live objects to/
 
 The key insight is that you serialize configuration data, not object instances. Your JSON should describe "how to build" the injectionator, not the built objects themselves.
 
+> You can't reliably use JSON.stringify() on a complex class instance because it will lose methods and can fail on circular references. Instead, create a method on your objects that returns a simple, serializable configuration object.
+
+Let's call this method .toJSON() (a special method name that JSON.stringify() will automatically use if it exists) or a more explicit .getConfiguration().
+
+1. Define .toJSON() on each component: Each component (Mitigation, Backend, etc.) should know how to describe itself in a simple object format.
+
+```javascript
+/ Example from our DenyListMitigation
+class DenyListMitigation extends MitigationStrategy {
+    constructor(params) {
+        super();
+        this.forbiddenPhrases = params.phrases || [];
+        this.listName = params.listName || "custom";
+    }
+
+    // ... process() method ...
+
+    toJSON() {
+        return {
+            mitigation: "denyList", // A unique identifier for the factory
+            params: {
+                listName: this.listName,
+                phrases: this.forbiddenPhrases
+            }
+        };
+    }
+}
+```
+
+2. Define .toJSON() on the Injectionator: The main object orchestrates this, calling .toJSON() on all its parts and assembling them into one large configuration object.
+
+```javascript
+class Injectionator {
+    constructor(config) {
+        this.name = config.name;
+        this.injection = config.injection; // Injection object
+        this.sendPipeline = config.sendPipeline; // Array of Mitigation objects
+        this.receivePipeline = config.receivePipeline; // Array of Mitigation objects
+        this.backend = config.backend; // Backend object
+    }
+
+    // ... run() method ...
+
+    toJSON() {
+        return {
+            name: this.name,
+            injection: this.injection.toJSON(), // Assuming Injection has a .toJSON()
+            sendPipeline: this.sendPipeline.map(m => m.toJSON()),
+            receivePipeline: this.receivePipeline.map(m => m.toJSON()),
+            backend: this.backend.toJSON()
+        };
+    }
+}
+```
+
+Now, calling JSON.stringify(myInjectionatorInstance, null, 2) will produce the clean, hand-editable JSON you need.
+
+### From JSON to Instance (Rehydration with a Factory)
+A Factory is a design pattern that handles the logic of creating objects. Your InjectionatorFactory will read the JSON configuration and use it to build a live Injectionator instance.
+
+1. Create Component Factories: Start with factories for the individual parts. A MitigationFactory is a great example. It acts as a registry for all known mitigation types.
+
+```javascript
+// All possible mitigation classes must be imported/available here
+import { DenyListMitigation } from './mitigations/denyList.js';
+import { HeuristicMitigation } from './mitigations/heuristic.js';
+
+class MitigationFactory {
+    static create(config) { // config is an object like { mitigation: "...", params: {...} }
+        switch (config.mitigation) {
+            case "denyList":
+                return new DenyListMitigation(config.params);
+            case "heuristic":
+                return new HeuristicMitigation(config.params);
+            default:
+                throw new Error(`Unknown mitigation type: ${config.mitigation}`);
+        }
+    }
+}
+```
+
+You would create similar factories for BackendFactory and InjectionFactory.
+
+2. Create the Main InjectionatorFactory: This top-level factory uses the component factories to build all the pieces and then assembles the final Injectionator.
+
+```javascript
+import { MitigationFactory } from './factories/mitigationFactory.js';
+import { BackendFactory } from './factories/backendFactory.js';
+import { Injectionator } from './injectionator.js';
+// We can use the Builder pattern here for clean assembly
+import { InjectionatorBuilder } from './injectionatorBuilder.js';
+
+class InjectionatorFactory {
+    static rehydrate(jsonConfig) {
+        const builder = new InjectionatorBuilder();
+
+        builder.setName(jsonConfig.name);
+        builder.setInjection(jsonConfig.injection); // For simplicity, assuming injection is just data
+
+        // Use the MitigationFactory to build the pipeline components
+        const sendMitigations = jsonConfig.sendPipeline.map(MitigationFactory.create);
+        const receiveMitigations = jsonConfig.receivePipeline.map(MitigationFactory.create);
+
+        builder.setSendPipeline(sendMitigations);
+        builder.setReceivePipeline(receiveMitigations);
+
+        // Use the BackendFactory to build the backend
+        const backend = BackendFactory.create(jsonConfig.backend);
+        builder.setBackend(backend);
+
+        return builder.build(); // Returns a fully instantiated Injectionator
+    }
+}
+```
+
+Yes, your approach is exactly right. You define the Injectionator with JSON, and a Factory rehydrates that JSON into a fully instantiated object. The key is to serialize a description of the Injectionator, not the live object instance itself.
+
+Here’s how you can implement this process.
+
+From Instance to JSON (Serialization)
+You can't reliably use JSON.stringify() on a complex class instance because it will lose methods and can fail on circular references. Instead, create a method on your objects that returns a simple, serializable configuration object.
+
+Let's call this method .toJSON() (a special method name that JSON.stringify() will automatically use if it exists) or a more explicit .getConfiguration().
+
+Define .toJSON() on each component: Each component (Mitigation, Backend, etc.) should know how to describe itself in a simple object format.
+
+JavaScript
+
+// Example from our DenyListMitigation
+class DenyListMitigation extends MitigationStrategy {
+    constructor(params) {
+        super();
+        this.forbiddenPhrases = params.phrases || [];
+        this.listName = params.listName || "custom";
+    }
+
+    // ... process() method ...
+
+    toJSON() {
+        return {
+            mitigation: "denyList", // A unique identifier for the factory
+            params: {
+                listName: this.listName,
+                phrases: this.forbiddenPhrases
+            }
+        };
+    }
+}
+Define .toJSON() on the Injectionator: The main object orchestrates this, calling .toJSON() on all its parts and assembling them into one large configuration object.
+
+JavaScript
+
+class Injectionator {
+    constructor(config) {
+        this.name = config.name;
+        this.injection = config.injection; // Injection object
+        this.sendPipeline = config.sendPipeline; // Array of Mitigation objects
+        this.receivePipeline = config.receivePipeline; // Array of Mitigation objects
+        this.backend = config.backend; // Backend object
+    }
+
+    // ... run() method ...
+
+    toJSON() {
+        return {
+            name: this.name,
+            injection: this.injection.toJSON(), // Assuming Injection has a .toJSON()
+            sendPipeline: this.sendPipeline.map(m => m.toJSON()),
+            receivePipeline: this.receivePipeline.map(m => m.toJSON()),
+            backend: this.backend.toJSON()
+        };
+    }
+}
+Now, calling JSON.stringify(myInjectionatorInstance, null, 2) will produce the clean, hand-editable JSON you need.
+
+From JSON to Instance (Rehydration with a Factory)
+A Factory is a design pattern that handles the logic of creating objects. Your InjectionatorFactory will read the JSON configuration and use it to build a live Injectionator instance.
+
+Create Component Factories: Start with factories for the individual parts. A MitigationFactory is a great example. It acts as a registry for all known mitigation types.
+
+JavaScript
+
+// All possible mitigation classes must be imported/available here
+import { DenyListMitigation } from './mitigations/denyList.js';
+import { HeuristicMitigation } from './mitigations/heuristic.js';
+
+class MitigationFactory {
+    static create(config) { // config is an object like { mitigation: "...", params: {...} }
+        switch (config.mitigation) {
+            case "denyList":
+                return new DenyListMitigation(config.params);
+            case "heuristic":
+                return new HeuristicMitigation(config.params);
+            default:
+                throw new Error(`Unknown mitigation type: ${config.mitigation}`);
+        }
+    }
+}
+You would create similar factories for BackendFactory and InjectionFactory.
+
+Create the Main InjectionatorFactory: This top-level factory uses the component factories to build all the pieces and then assembles the final Injectionator.
+
+JavaScript
+
+import { MitigationFactory } from './factories/mitigationFactory.js';
+import { BackendFactory } from './factories/backendFactory.js';
+import { Injectionator } from './injectionator.js';
+// We can use the Builder pattern here for clean assembly
+import { InjectionatorBuilder } from './injectionatorBuilder.js';
+
+class InjectionatorFactory {
+    static rehydrate(jsonConfig) {
+        const builder = new InjectionatorBuilder();
+
+        builder.setName(jsonConfig.name);
+        builder.setInjection(jsonConfig.injection); // For simplicity, assuming injection is just data
+
+        // Use the MitigationFactory to build the pipeline components
+        const sendMitigations = jsonConfig.sendPipeline.map(MitigationFactory.create);
+        const receiveMitigations = jsonConfig.receivePipeline.map(MitigationFactory.create);
+
+        builder.setSendPipeline(sendMitigations);
+        builder.setReceivePipeline(receiveMitigations);
+
+        // Use the BackendFactory to build the backend
+        const backend = BackendFactory.create(jsonConfig.backend);
+        builder.setBackend(backend);
+
+        return builder.build(); // Returns a fully instantiated Injectionator
+    }
+}
+
+### Example Workflow
+
+1. Create/Save: An Injectionator is configured in the UI. You call myInjectionator.toJSON() and save the resulting object as a my-test.json file.
+
+2. Edit: You open my-test.json and manually change a parameter, like a mitigation's level from "high" to "medium".
+
+3. Load/Rehydrate: The application loads my-test.json, parses it into a JavaScript object, and passes it to InjectionatorFactory.rehydrate(loadedJson).
+
+4. Run: The factory returns a brand new, fully functional Injectionator instance, ready to .run().
+
 ## Key Design Principles
 
 1. Configuration over Implementation
