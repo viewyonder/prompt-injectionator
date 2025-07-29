@@ -691,3 +691,57 @@ describe('PromptProcessor', () => {
   });
 });
 ```
+
+## Core Recommendation: Favor Immutability ⚙️
+Your injection.apply(prompt) method should follow a functional approach: it takes data in and returns a new piece of data out, without causing changes elsewhere in the system (known as "side effects").
+
+DON'T DO THIS (Mutation):
+
+```Python
+
+# Avoid this pattern
+class Injection:
+    def apply(self, user_object):
+        user_object.prompt = "INJECTION: " + user_object.prompt # Modifies the original object
+```
+
+DO THIS (Immutability):
+
+```Python
+
+# Recommended pattern
+class Injection:
+    def apply(self, prompt_string):
+        return "INJECTION: " + prompt_string # Returns a new string
+```
+
+## Proposed Data Flow
+
+Here's how the data should flow through your application, preserving the original input.
+
+Origin: The User class holds the original, unaltered prompt. This is your "source of truth."
+
+original_prompt = user.prompt
+
+Injection: The injection.apply() method is called with the original prompt. It returns a new string, which you store in a new variable.
+
+injected_prompt = injection.apply(original_prompt)
+
+Sending & Mitigation: The SEND block's mitigation functions now operate on the injected_prompt. Each mitigation step can also return a new, further-processed string.
+
+prompt_to_send = mitigation.detect(injected_prompt)
+
+Backend: The final, processed prompt_to_send is passed to the Backend class.
+
+The RECEIVE block's mitigations would then operate on the response from the LLM, not the prompt.
+
+## Why This Approach is Better ✅
+
+This immutable data flow directly supports your goal of a coherent and decoupled system.
+
+Traceability: You always have the original_prompt for logging, auditing, or comparison. You can easily see the transformation at each step: original_prompt -> injected_prompt -> prompt_to_send.
+
+Decoupling: The Injection class doesn't need to know anything about the User class. It just needs a string. You could reuse this Injection class anywhere else in your code that works with strings. The User class remains a simple data holder, unaware of the injection process.
+
+Predictability: This eliminates a whole class of bugs caused by side effects. You never have to wonder, "What part of my code changed the user's prompt?" The data flow is explicit and easy to follow.
+
