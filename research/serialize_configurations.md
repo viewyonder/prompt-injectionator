@@ -6,6 +6,27 @@ You need a serialization/deserialization strategy that converts live objects to/
 
 The key insight is that you serialize configuration data, not object instances. Your JSON should describe "how to build" the injectionator, not the built objects themselves.
 
+## Key Design Principles
+
+1. Configuration over Implementation
+
+The JSON describes what to build, not how it works. Each component serializes its configuration data, not its runtime state.
+
+2. Type-Based Factory System
+
+Every serializable object includes a type field that maps to a factory class. This makes the system extensible - just register new types with the registry.
+
+3. Nested Object Handling
+
+Decorators and pipelines are handled recursively. The system can serialize arbitrarily deep decorator chains and reconstruct them perfectly.
+
+4. Security Considerations
+
+API keys and sensitive data are referenced by environment variable names, not stored in JSON
+The system validates JSON structure before attempting deserialization
+Each factory method includes error handling for malformed data
+
+
 ```javascript
 // 1. SERIALIZABLE INTERFACE
 // Every component that needs serialization implements this
@@ -853,3 +874,85 @@ function demonstrateSerializationSystem() {
 // Run the demonstration
 const demo = demonstrateSerializationSystem();
 ```
+
+## Usage Patterns
+
+### Programmatic Creation
+
+```javascript
+// Create injectionator programmatically  
+const config = {
+    type: "Injectionator",
+    version: "1.0",
+    metadata: { name: "Dynamic Test" },
+    injection: {
+        type: "Injection",
+        prompt: "Test prompt"
+    },
+    // ... rest of config
+};
+
+const injectionator = Injectionator.fromJSON(config);
+```
+
+### Hand-Edited JSON
+Users can create and edit JSON files directly, enabling:
+
+- Configuration templates
+- Batch test creation
+- Version control of test configurations
+- Sharing test scenarios between teams
+
+## Library Integration
+
+```javascript
+class InjectionatorLibrary {
+    constructor() {
+        this.configurations = new Map();
+    }
+    
+    async saveConfiguration(name, injectionator) {
+        const json = injectionator.toJSON();
+        // Save to database/file system
+        this.configurations.set(name, json);
+    }
+    
+    async loadConfiguration(name) {
+        const json = this.configurations.get(name);
+        return Injectionator.fromJSON(json);
+    }
+    
+    exportConfiguration(name) {
+        return JSON.stringify(this.configurations.get(name), null, 2);
+    }
+}
+```
+
+## Extension Points
+
+### Adding New Component Types
+
+```javascript
+// 1. Create the component with Serializable interface
+class CustomMitigation extends Serializable {
+    // ... implementation
+    
+    toJSON() {
+        return {
+            type: 'CustomMitigation',
+            // ... configuration
+        };
+    }
+    
+    static fromJSON(data) {
+        return new CustomMitigation(/* ... */);
+    }
+}
+
+// 2. Register with the factory system
+componentRegistry.register('CustomMitigation', CustomMitigation);
+
+// 3. Now it works in JSON configurations!
+```
+
+This architecture gives you complete flexibility to save, load, share, and programmatically create injectionator configurations while maintaining type safety and extensibility. The JSON format is human-readable and can be version-controlled, making it perfect for your testing framework.
