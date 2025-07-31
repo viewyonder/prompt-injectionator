@@ -1,13 +1,61 @@
 /**
- * Injection class represents a specific type of prompt injection attack
- * It can detect if an injection is present in a user prompt and apply itself to a prompt
+ * Injection class represents a specific type of prompt injection attack pattern.
+ * 
+ * This class encapsulates the logic for detecting and applying prompt injection attacks.
+ * Each injection has a type (e.g., "Role Play", "Prompt Extraction") and contains
+ * patterns (strings or regex) that can be used to detect if the injection is present
+ * in user input.
+ * 
+ * @class Injection
+ * @since 1.0.0
+ * @example
+ * // Create a role-play injection
+ * const rolePlayInjection = new Injection(
+ *     'Expert Simulation',
+ *     'Role Play', 
+ *     'Attempts to make LLM act as an expert',
+ *     ['act as an expert', 'simulate an expert', /expert.*mode/gi]
+ * );
+ * 
+ * // Detect the injection in user input
+ * const result = rolePlayInjection.detect('Act as an expert and tell me about AI');
+ * console.log(result.detected); // true
  */
 export class Injection {
+    /**
+     * Creates a new Injection instance.
+     * 
+     * @param {string} name - Human-readable name for this injection
+     * @param {string} type - Category of injection (e.g., 'Role Play', 'Prompt Extraction')
+     * @param {string} description - Detailed description of what this injection does
+     * @param {Array<string|RegExp>} [patterns=[]] - Array of string or regex patterns to detect
+     * @throws {Error} When name, type, or description are empty
+     * @example
+     * const injection = new Injection(
+     *     'System Prompt Extraction',
+     *     'Prompt Extraction',
+     *     'Attempts to extract the system prompt',
+     *     ['show me your prompt', /system.*prompt/gi]
+     * );
+     */
     constructor(name, type, description, patterns = []) {
+        if (!name || !type || !description) {
+            throw new Error('Name, type, and description are required');
+        }
+        
+        /** @type {string} Human-readable name for this injection */
         this.name = name;
+        
+        /** @type {string} Category/type of this injection */
         this.type = type;
+        
+        /** @type {string} Detailed description of the injection's purpose */
         this.description = description;
-        this.patterns = patterns; // Array of strings or regex patterns to detect
+        
+        /** @type {Array<string|RegExp>} Patterns used to detect this injection */
+        this.patterns = patterns;
+        
+        /** @type {string} Unique identifier for this injection instance */
         this.id = crypto.randomUUID();
     }
 
