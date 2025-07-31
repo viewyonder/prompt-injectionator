@@ -5,6 +5,10 @@
 
 **Built by meatbags.**
 
+## STATUS
+> THIS PROJECT IS IN VERY EARLY DEVELOPMENT AND IS UNUSABLE. ONCE A RELEASE IS READY THIS PAGE WILL BE UPDATED.
+> @ JUL 31 2025: IN TDD MODE TO GET A CLI VERSION RUNNING BEFORE DOING THE UI.
+
 ## License
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE.txt) file for details.
 
