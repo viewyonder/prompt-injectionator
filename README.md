@@ -110,32 +110,32 @@ This diagram illustrates the complete execution flow from user input to final re
 
 ```mermaid
 flowchart TD
-    A[User Input] --> B[Injectionator.execute()]
-    B --> C{Send Chain Configured?}
+    A[User Input] --> B["Injectionator.execute()"]
+    B --> C{"Send Chain Configured?"}
     
-    C -->|Yes| D[Send Chain Process]
-    C -->|No| E[Skip Send Chain]
+    C -->|Yes| D["Send Chain Process"]
+    C -->|No| E["Skip Send Chain"]
     
-    D --> F{Send Chain Passed?}
-    F -->|No| G[Generate Blocked Response]
-    F -->|Yes| H[Call LLM Backend]
+    D --> F{"Send Chain Passed?"}
+    F -->|No| G["Generate Blocked Response"]
+    F -->|Yes| H["Call LLM Backend"]
     
     E --> H
     
-    H --> I{LLM Call Success?}
-    I -->|No| J[Generate Error Response]
-    I -->|Yes| K{Receive Chain Configured?}
+    H --> I{"LLM Call Success?"}
+    I -->|No| J["Generate Error Response"]
+    I -->|Yes| K{"Receive Chain Configured?"}
     
-    K -->|Yes| L[Receive Chain Process]
-    K -->|No| M[Skip Receive Chain]
+    K -->|Yes| L["Receive Chain Process"]
+    K -->|No| M["Skip Receive Chain"]
     
-    L --> N{Receive Chain Passed?}
-    N -->|No| O[Generate Blocked Response]
-    N -->|Yes| P[Return LLM Response]
+    L --> N{"Receive Chain Passed?"}
+    N -->|No| O["Generate Blocked Response"]
+    N -->|Yes| P["Return LLM Response"]
     
     M --> P
     
-    G --> Q[Final Response to User]
+    G --> Q["Final Response to User"]
     J --> Q
     O --> Q
     P --> Q
