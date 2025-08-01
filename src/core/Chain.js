@@ -1,3 +1,5 @@
+import Logger from '../Logger.js';
+
 /**
  * Base Chain class for processing mitigations in sequence
  */
@@ -6,6 +8,18 @@ export class Chain {
         this.name = name;
         this.mitigations = mitigations;
         this.id = crypto.randomUUID();
+        
+        // Initialize logger
+        this.logger = new Logger({
+            context: `Chain:${this.name}`,
+            level: Logger.LOG_LEVELS.INFO
+        });
+        
+        this.logger.info('Chain created', {
+            name: this.name,
+            id: this.id,
+            event: 'chain_created'
+        });
     }
 
     /**
@@ -14,6 +28,11 @@ export class Chain {
      * @returns {object} Chain processing result
      */
     async process(userPrompt) {
+        this.logger.info('Chain processing started', {
+            event: 'chain_process_start',
+            promptLength: userPrompt.length
+        });
+        
         const chainResult = {
             chainName: this.name,
             chainId: this.id,
@@ -28,13 +47,29 @@ export class Chain {
             const result = mitigation.process(userPrompt);
             chainResult.results.push(result);
 
+            // Log each mitigation result
+            this.logger.info(`Mitigation ${mitigation.name} processed`, {
+                event: 'mitigation_processed',
+                mitigationName: mitigation.name,
+                passed: result.passed
+            });
+
             // If any mitigation in Active mode fails, stop the chain
             if (!result.passed && mitigation.mode === 'Active') {
                 chainResult.passed = false;
                 chainResult.blockedBy = mitigation.name;
+                this.logger.warn('Chain blocked by mitigation', {
+                    event: 'chain_blocked',
+                    blockedBy: mitigation.name
+                });
                 break;
             }
         }
+
+        this.logger.info('Chain processing completed', {
+            event: 'chain_process_end',
+            passed: chainResult.passed
+        });
 
         return chainResult;
     }

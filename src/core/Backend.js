@@ -1,3 +1,5 @@
+import Logger from '../Logger.js';
+
 /**
  * Base Backend class that all backend implementations extend
  */
@@ -8,6 +10,19 @@ export class Backend {
         this.config = config;
         this.id = crypto.randomUUID();
         this.createdAt = new Date();
+        
+        // Initialize logger
+        this.logger = new Logger({
+            context: `${this.type}:${this.name}`,
+            level: Logger.LOG_LEVELS.INFO
+        });
+        
+        this.logger.info('Backend created', {
+            name: this.name,
+            id: this.id,
+            type: this.type,
+            event: 'backend_created'
+        });
     }
 
     /**
@@ -67,10 +82,18 @@ export class LLMBackend extends Backend {
      */
     async process(userPrompt) {
         try {
+            const startTime = Date.now();
+            this.logger.info('Processing user prompt', {
+                event: 'llm_process_start',
+                promptLength: userPrompt.length
+            });
+            
             // Simulate API call delay
             await new Promise(resolve => setTimeout(resolve, 200));
 
-            return {
+            const processingTime = Date.now() - startTime;
+            
+            const result = {
                 success: true,
                 response: "I'm only a mockup, not a real boy",
                 metadata: {
@@ -79,11 +102,22 @@ export class LLMBackend extends Backend {
                     provider: this.config.provider,
                     model: this.config.model,
                     tokens: userPrompt.length,
-                    processingTime: 200,
+                    processingTime: processingTime,
                     prompt: userPrompt
                 }
             };
+            
+            this.logger.info('Processing completed', {
+                event: 'llm_process_end',
+                processingTime: processingTime
+            });
+
+            return result;
         } catch (error) {
+            this.logger.error('Processing failed', {
+                event: 'llm_process_error',
+                error: error.message
+            });
             return {
                 success: false,
                 error: error.message,
@@ -141,10 +175,18 @@ export class WebhookBackend extends Backend {
      */
     async process(userPrompt) {
         try {
+            const startTime = Date.now();
+            this.logger.info('Processing user prompt', {
+                event: 'webhook_process_start',
+                promptLength: userPrompt.length
+            });
+            
             // Simulate webhook call delay
             await new Promise(resolve => setTimeout(resolve, 150));
 
-            return {
+            const processingTime = Date.now() - startTime;
+            
+            const result = {
                 success: true,
                 response: "I'm only a mockup, not a real boy",
                 metadata: {
@@ -152,12 +194,23 @@ export class WebhookBackend extends Backend {
                     type: this.type,
                     webhookUrl: this.config.url,
                     method: this.config.method,
-                    processingTime: 150,
+                    processingTime: processingTime,
                     prompt: userPrompt,
                     statusCode: 200
                 }
             };
+            
+            this.logger.info('Processing completed', {
+                event: 'webhook_process_end',
+                processingTime: processingTime
+            });
+
+            return result;
         } catch (error) {
+            this.logger.error('Processing failed', {
+                event: 'webhook_process_error',
+                error: error.message
+            });
             return {
                 success: false,
                 error: error.message,
@@ -219,10 +272,18 @@ export class ChatBotBackend extends Backend {
      */
     async process(userPrompt) {
         try {
+            const startTime = Date.now();
+            this.logger.info('Processing user prompt', {
+                event: 'chatbot_process_start',
+                promptLength: userPrompt.length
+            });
+            
             // Simulate chatbot processing delay
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            return {
+            const processingTime = Date.now() - startTime;
+            
+            const result = {
                 success: true,
                 response: "I'm only a mockup, not a real boy",
                 metadata: {
@@ -231,12 +292,23 @@ export class ChatBotBackend extends Backend {
                     botId: this.config.botId,
                     personality: this.config.personality,
                     language: this.config.language,
-                    processingTime: 300,
+                    processingTime: processingTime,
                     prompt: userPrompt,
                     conversationId: 'conv-' + Date.now()
                 }
             };
+            
+            this.logger.info('Processing completed', {
+                event: 'chatbot_process_end',
+                processingTime: processingTime
+            });
+
+            return result;
         } catch (error) {
+            this.logger.error('Processing failed', {
+                event: 'chatbot_process_error',
+                error: error.message
+            });
             return {
                 success: false,
                 error: error.message,

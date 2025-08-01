@@ -1,9 +1,11 @@
+import Logger from '../Logger.js';
+
 /**
  * Injectionator class orchestrates the complete flow using Chain of Responsibility pattern
  * Flow: userPrompt -> sendChain -> LLM -> receiveChain -> user
  */
 export class Injectionator {
-    constructor(name, description, sourceUrl, sendChain, receiveChain, llmBackend) {
+    constructor(name, description, sourceUrl, sendChain, receiveChain, llmBackend, logger = null) {
         this.name = name || 'Default Injectionator';
         this.description = description || 'Processes prompts through security chains and LLM';
         this.sourceUrl = sourceUrl || null;
@@ -13,6 +15,18 @@ export class Injectionator {
         this.id = crypto.randomUUID();
         this.createdAt = new Date();
         this.lastModified = new Date();
+        
+        // Initialize logger
+        this.logger = logger || new Logger({
+            context: `Injectionator:${this.name}`,
+            level: Logger.LOG_LEVELS.INFO
+        });
+        
+        this.logger.info('Injectionator created', {
+            name: this.name,
+            id: this.id,
+            event: 'injectionator_created'
+        });
     }
 
     /**
@@ -21,6 +35,12 @@ export class Injectionator {
      * @returns {object} Complete execution result
      */
     async execute(userPrompt) {
+        const startTime = Date.now();
+        this.logger.startExecution('Injectionator', {
+            userPrompt: userPrompt.substring(0, 100) + (userPrompt.length > 100 ? '...' : ''),
+            promptLength: userPrompt.length
+        });
+        
         const executionResult = {
             injectionatorId: this.id,
             injectionatorName: this.name,
@@ -37,6 +57,11 @@ export class Injectionator {
         try {
             // Step 1: Process through Send Chain
             if (this.sendChain) {
+                this.logger.info('Processing through send chain', {
+                    chainName: this.sendChain.name,
+                    event: 'send_chain_start'
+                });
+                
                 const sendResult = await this.sendChain.process(userPrompt);
                 executionResult.steps.push({
                     step: 'send_chain',
@@ -46,16 +71,40 @@ export class Injectionator {
                 });
 
                 if (!sendResult.passed) {
+                    this.logger.warn('Request blocked by send chain', {
+                        chainName: this.sendChain.name,
+                        blockedBy: sendResult.blockedBy,
+                        event: 'execution_blocked'
+                    });
                     executionResult.blockedAt = 'send_chain';
                     executionResult.finalResponse = this._generateBlockedResponse(sendResult);
                     executionResult.endTime = new Date();
                     return executionResult;
                 }
+                
+                this.logger.info('Send chain passed', {
+                    chainName: this.sendChain.name,
+                    event: 'send_chain_passed'
+                });
             }
 
             // Step 2: Call LLM Backend
             if (this.llmBackend) {
+                this.logger.info('Calling backend', {
+                    backendType: this.llmBackend.constructor.name,
+                    event: 'backend_call_start'
+                });
+                
+                const backendStartTime = Date.now();
                 const llmResult = await this._callLLM(userPrompt);
+                const backendProcessingTime = Date.now() - backendStartTime;
+                
+                this.logger.backendCall(
+                    this.llmBackend.constructor.name,
+                    backendProcessingTime,
+                    { success: llmResult.success }
+                );
+                
                 executionResult.steps.push({
                     step: 'llm_backend',
                     backendName: this.llmBackend.name || 'Unknown LLM',
@@ -64,6 +113,11 @@ export class Injectionator {
                 });
 
                 if (!llmResult.success) {
+                    this.logger.error('Backend call failed', {
+                        error: llmResult.error,
+                        backendType: this.llmBackend.constructor.name,
+                        event: 'backend_error'
+                    });
                     executionResult.error = llmResult.error;
                     executionResult.blockedAt = 'llm_backend';
                     executionResult.finalResponse = this._generateErrorResponse(llmResult.error);
@@ -73,6 +127,11 @@ export class Injectionator {
 
                 // Step 3: Process LLM response through Receive Chain
                 if (this.receiveChain) {
+                    this.logger.info('Processing through receive chain', {
+                        chainName: this.receiveChain.name,
+                        event: 'receive_chain_start'
+                    });
+                    
                     const receiveResult = await this.receiveChain.process(llmResult.response);
                     executionResult.steps.push({
                         step: 'receive_chain',
@@ -82,21 +141,42 @@ export class Injectionator {
                     });
 
                     if (!receiveResult.passed) {
+                        this.logger.warn('Response blocked by receive chain', {
+                            chainName: this.receiveChain.name,
+                            blockedBy: receiveResult.blockedBy,
+                            event: 'execution_blocked'
+                        });
                         executionResult.blockedAt = 'receive_chain';
                         executionResult.finalResponse = this._generateBlockedResponse(receiveResult);
                         executionResult.endTime = new Date();
                         return executionResult;
                     }
+                    
+                    this.logger.info('Receive chain passed', {
+                        chainName: this.receiveChain.name,
+                        event: 'receive_chain_passed'
+                    });
                 }
 
                 // Success - all chains passed
                 executionResult.success = true;
                 executionResult.finalResponse = llmResult.response;
+                
+                const totalProcessingTime = Date.now() - startTime;
+                this.logger.endExecution('Injectionator', 'SUCCESS', {
+                    processingTime: totalProcessingTime,
+                    responseLength: llmResult.response ? llmResult.response.length : 0
+                });
             } else {
                 throw new Error('No LLM backend configured');
             }
 
         } catch (error) {
+            this.logger.error('Execution failed with exception', {
+                error: error.message,
+                stack: error.stack,
+                event: 'execution_error'
+            });
             executionResult.error = error.message;
             executionResult.finalResponse = this._generateErrorResponse(error.message);
         }

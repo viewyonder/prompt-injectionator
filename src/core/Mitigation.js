@@ -1,3 +1,5 @@
+import Logger from '../Logger.js';
+
 /**
  * Mitigation class wraps one or more injection objects and decides how to handle detection results.
  * Contains state (On/Off), mode (Active/Passive), and action handling
@@ -12,6 +14,20 @@ export class Mitigation {
         this.injections = injections; // Array of Injection objects
         this.action = action; // 'abort', 'flag', 'silent'
         this.id = crypto.randomUUID();
+        
+        // Initialize logger
+        this.logger = new Logger({
+            context: `Mitigation:${this.name}`,
+            level: Logger.LOG_LEVELS.INFO
+        });
+        
+        this.logger.info('Mitigation created', {
+            name: this.name,
+            id: this.id,
+            mode: this.mode,
+            state: this.state,
+            event: 'mitigation_created'
+        });
     }
 
     /**
@@ -20,6 +36,11 @@ export class Mitigation {
      * @returns {object} Processing result with action taken
      */
     process(userPrompt) {
+        this.logger.debug('Processing prompt', {
+            event: 'mitigation_process_start',
+            promptLength: userPrompt.length
+        });
+        
         const result = {
             mitigationName: this.name,
             mitigationMode: this.mode,
@@ -34,6 +55,9 @@ export class Mitigation {
         if (this.mode === 'Skip') {
             result.action = 'skipped';
             result.reason = 'Mitigation is in skip mode';
+            this.logger.debug('Mitigation skipped', {
+                event: 'mitigation_skipped'
+            });
             return result;
         }
 
@@ -42,6 +66,11 @@ export class Mitigation {
             const detection = injection.detect(userPrompt);
             if (detection.detected) {
                 result.detections.push(detection);
+                this.logger.info('Injection pattern detected', {
+                    event: 'injection_detected',
+                    injectionType: injection.type,
+                    injectionName: injection.name
+                });
             }
         }
 
@@ -49,6 +78,9 @@ export class Mitigation {
         if (result.detections.length === 0) {
             result.action = 'allowed';
             result.reason = 'No injection patterns detected';
+            this.logger.debug('No injections detected', {
+                event: 'mitigation_passed'
+            });
             return result;
         }
 
@@ -58,18 +90,30 @@ export class Mitigation {
                 result.action = 'reported';
                 result.reason = `Detected ${result.detections.length} injection pattern(s), but allowing in passive mode`;
                 result.passed = true;
+                this.logger.info('Passive mode - allowing with detection', {
+                    event: 'mitigation_passive',
+                    detectionCount: result.detections.length
+                });
                 break;
 
             case 'Active':
                 result.action = 'blocked';
                 result.reason = `Blocked due to ${result.detections.length} detected injection pattern(s)`;
                 result.passed = false;
+                this.logger.warn('Active mode - blocking request', {
+                    event: 'mitigation_blocked',
+                    detectionCount: result.detections.length
+                });
                 break;
 
             default:
                 result.action = 'error';
                 result.reason = `Unknown mitigation mode: ${this.mode}`;
                 result.passed = false;
+                this.logger.error('Unknown mitigation mode', {
+                    event: 'mitigation_error',
+                    mode: this.mode
+                });
         }
 
         return result;
