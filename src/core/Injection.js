@@ -43,7 +43,12 @@ export class Injection {
             throw new Error('Name, type, and description are required');
         }
         
-        /** @type {string} Human-readable name for this injection */
+        // Validate kebab-case naming convention
+        if (!/^[a-z]+(-[a-z]+)*$/.test(name)) {
+            throw new Error(`Injection name must be in kebab-case format: ${name}`);
+        }
+        
+        /** @type {string} Kebab-case name for this injection */
         this.name = name;
         
         /** @type {string} Category/type of this injection */
