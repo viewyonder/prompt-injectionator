@@ -24,17 +24,21 @@ classDiagram
         -string sourceUrl
         -SendChain sendChain
         -ReceiveChain receiveChain
-        -object llmBackend
+        -Backend backend
         -Date createdAt
         -Date lastModified
         +execute(userPrompt) Promise~object~
         +setSendChain(sendChain) void
         +setReceiveChain(receiveChain) void
-        +setLLMBackend(llmBackend) void
+        +setBackend(backend) void
         +getDetails() object
         +validate() object
         +toJSON() object
         +fromJSON(config)$ Injectionator
+    }
+
+    class Backend {
+        +process(userPrompt) Promise~string~
     }
 
     class SendChain {
@@ -96,11 +100,12 @@ classDiagram
         +getDetails() object
     }
 
-    Injectionator --> SendChain : uses
-    Injectionator --> ReceiveChain : uses
-SendChain --> Mitigation : wraps
-    ReceiveChain --> Mitigation : wraps
-    Mitigation --> Injection : wraps
+    Injectionator -- SendChain : uses
+    Injectionator -- ReceiveChain : uses
+    Injectionator -- Backend : uses
+SendChain -- Mitigation : wraps
+    ReceiveChain -- Mitigation : wraps
+    Mitigation -- Injection : wraps
 ```
 
 ### Execution Flow Diagram
