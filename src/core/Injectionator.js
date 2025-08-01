@@ -1,4 +1,8 @@
 import logger from '../Logger.js';
+import { Injection } from './Injection.js';
+import { SendChain, ReceiveChain } from './Chain.js';
+import { LLMBackend } from './Backend.js';
+import { Mitigation } from './Mitigation.js';
 
 /**
  * Injectionator class orchestrates the complete flow using Chain of Responsibility pattern
@@ -308,12 +312,47 @@ export class Injectionator {
      * @returns {Injectionator} New injectionator instance
      */
     static fromJSON(config) {
-        // This would be implemented to reconstruct from injectionator.json
-        // For now, return a basic instance
+        // Construct injections
+        const injections = Object.fromEntries(
+            Object.entries(config.injections).map(([key, injectionConfig]) => [key, Injection.fromJSON(injectionConfig)])
+        );
+
+        // Construct mitigations for chains
+        const constructMitigations = (chainConfig) =>
+            chainConfig.mitigations.map((mitConfig) => ({
+                ...mitConfig,
+                injection: injections[mitConfig.injection]
+            }));
+
+        // Construct send chain
+        const sendChain = new SendChain(
+            config.sendChain.name,
+            config.sendChain.description,
+            config.sendChain.sourceUrl,
+            null, // backend will be set separately
+            constructMitigations(config.sendChain)
+        );
+
+        // Construct receive chain
+        const receiveChain = new ReceiveChain(
+            config.receiveChain.name,
+            config.receiveChain.description,
+            config.receiveChain.sourceUrl,
+            config.receiveChain.outputTarget,
+            constructMitigations(config.receiveChain)
+        );
+
+        // Construct backend
+        const backend = new LLMBackend(config.backend.name, config.backend);
+
+        // Construct Injectionator
         return new Injectionator(
             config.name,
             config.description,
-            config.sourceUrl
+            config.sourceUrl,
+            sendChain,
+            receiveChain,
+            backend
         );
     }
 
@@ -326,11 +365,36 @@ export class Injectionator {
             name: this.name,
             description: this.description,
             sourceUrl: this.sourceUrl,
-            sendChain: this.sendChain ? this.sendChain.getDetails() : null,
-            receiveChain: this.receiveChain ? this.receiveChain.getDetails() : null,
-            llmBackend: this.llmBackend,
-            createdAt: this.createdAt,
-            lastModified: this.lastModified
+            sendChain: this.sendChain ? this.sendChain.toJSON() : null,
+            receiveChain: this.receiveChain ? this.receiveChain.toJSON() : null,
+            backend: this.llmBackend ? this.llmBackend.toJSON() : null,
+            injections: this._extractInjectionsFromChains()
         };
+    }
+
+    /**
+     * Extract unique injections from chains
+     * @returns {object} Mapped injections
+     */
+    _extractInjectionsFromChains() {
+        const uniqueInjections = {};
+
+        const processMitigations = (mitigations) => {
+            mitigations.forEach((mitigation) => {
+                const { name, injection } = mitigation;
+                if (injection && !uniqueInjections[name]) {
+                    uniqueInjections[name] = injection.toJSON();
+                }
+            });
+        };
+
+        if (this.sendChain) {
+            processMitigations(this.sendChain.mitigations);
+        }
+        if (this.receiveChain) {
+            processMitigations(this.receiveChain.mitigations);
+        }
+
+        return uniqueInjections;
     }
 }

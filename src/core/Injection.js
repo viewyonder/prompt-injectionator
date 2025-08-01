@@ -128,4 +128,50 @@ export class Injection {
             patterns: this.patterns
         };
     }
+
+    /**
+     * Export injection to JSON-serializable configuration
+     * @returns {object} JSON configuration
+     */
+    toJSON() {
+        return {
+            name: this.name,
+            type: this.type,
+            description: this.description,
+            patterns: this.patterns.map(pattern => {
+                if (pattern instanceof RegExp) {
+                    return {
+                        type: 'regex',
+                        source: pattern.source,
+                        flags: pattern.flags
+                    };
+                }
+                return {
+                    type: 'string',
+                    value: pattern
+                };
+            })
+        };
+    }
+
+    /**
+     * Create an Injection from JSON configuration
+     * @param {object} config - JSON configuration object
+     * @returns {Injection} New injection instance
+     */
+    static fromJSON(config) {
+        const patterns = config.patterns.map(pattern => {
+            if (pattern.type === 'regex') {
+                return new RegExp(pattern.source, pattern.flags);
+            }
+            return pattern.value;
+        });
+        
+        return new Injection(
+            config.name,
+            config.type,
+            config.description,
+            patterns
+        );
+    }
 }
