@@ -20,10 +20,11 @@ The Logger has been refactored to use the Singleton pattern for centralized logg
 - **Rich Metadata**: Includes timestamp, session ID, context, elapsed time, and custom data
 - **Integration Ready**: Easy to pipe to monitoring systems like ELK, Splunk, or CloudWatch
 
-### 4. Optional Async Queue
-- **High Throughput**: Queue logs for async processing to avoid blocking operations
-- **Configurable**: Enable/disable via environment variables
-- **Error Handling**: Graceful degradation if file writes fail
+### 4. Console Output
+- **STDOUT**: INFO and DEBUG messages are sent to standard output
+- **STDERR**: WARN and ERROR messages are sent to standard error
+- **JSON Format**: All logs are structured JSON for easy parsing
+- **Container Friendly**: Works well with Docker and container orchestration
 
 ### 5. Environment-Based Configuration
 Configure the logger using environment variables:
@@ -31,12 +32,6 @@ Configure the logger using environment variables:
 ```bash
 # Set log level (DEBUG, INFO, WARN, ERROR)
 export LOGGER_LEVEL=INFO
-
-# Enable async logging queue
-export LOGGER_USE_QUEUE=true
-
-# Set custom log file path
-export LOGGER_OUTPUT_FILE=/var/log/injectionator.log
 ```
 
 ## Usage Examples
@@ -102,24 +97,29 @@ logger.hookResult('SecurityValidation', 'PASS', 25, { rulesChecked: 8 });
 
 ### Development Environment
 ```bash
-LOGGER_LEVEL=DEBUG \
-LOGGER_OUTPUT_FILE=./logs/dev.log \
-node app.js
+LOGGER_LEVEL=DEBUG node app.js
 ```
 
 ### Production Environment
 ```bash
-LOGGER_LEVEL=WARN \
-LOGGER_USE_QUEUE=true \
-LOGGER_OUTPUT_FILE=/var/log/injectionator/app.log \
-node app.js
+LOGGER_LEVEL=WARN node app.js
 ```
 
 ### Docker Container
 ```dockerfile
 ENV LOGGER_LEVEL=INFO
-ENV LOGGER_USE_QUEUE=true
-ENV LOGGER_OUTPUT_FILE=/app/logs/app.log
+```
+
+### Redirecting Output
+```bash
+# Redirect all logs to a file
+node app.js > app.log 2>&1
+
+# Separate INFO/DEBUG and WARN/ERROR logs
+node app.js > info.log 2> error.log
+
+# Send to syslog
+node app.js 2>&1 | logger -t injectionator
 ```
 
 ## Log Entry Structure
@@ -211,24 +211,46 @@ The structured JSON format makes it easy to integrate with monitoring systems:
 
 ### ELK Stack
 ```bash
-# Filebeat configuration to ship logs to Elasticsearch
-tail -f /var/log/injectionator/app.log | \
-  jq -c '. | select(.level == "ERROR")' | \
+# Filter and forward ERROR logs to Elasticsearch
+node app.js 2>&1 | jq -c 'select(.level == "ERROR")' | \
   curl -X POST "elasticsearch:9200/logs/_doc" -H "Content-Type: application/json" -d @-
+
+# Using Filebeat with console output
+node app.js > /var/log/injectionator.log 2>&1
+# Then configure Filebeat to read from /var/log/injectionator.log
 ```
 
-### CloudWatch
-```javascript
-// Stream logs to CloudWatch using AWS SDK
-const logEntry = JSON.parse(logLine);
-cloudWatchLogs.putLogEvents({
-    logGroupName: '/aws/injectionator',
-    logStreamName: logEntry.sessionId,
-    logEvents: [{
-        timestamp: new Date(logEntry.timestamp).getTime(),
-        message: JSON.stringify(logEntry)
-    }]
-});
+### Docker Logging
+```dockerfile
+# Docker automatically captures STDOUT/STDERR
+CMD ["node", "app.js"]
+
+# Use logging drivers
+docker run --log-driver=json-file --log-opt max-size=10m app
+docker run --log-driver=fluentd --log-opt fluentd-address=localhost:24224 app
+```
+
+### CloudWatch (AWS)
+```bash
+# Using AWS CLI to send logs to CloudWatch
+node app.js 2>&1 | aws logs put-log-events \
+  --log-group-name "/aws/injectionator" \
+  --log-stream-name "$(date +%Y%m%d)" \
+  --log-events timestamp=$(date +%s000),message="$(cat)"
+```
+
+### Kubernetes
+```yaml
+# Kubernetes automatically collects pod logs from STDOUT/STDERR
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: injectionator
+    image: injectionator:latest
+    env:
+    - name: LOGGER_LEVEL
+      value: "INFO"
 ```
 
 ## Demo
@@ -239,5 +261,5 @@ Run the included demo to see the singleton logger in action:
 node demo/singleton-logger-demo.js
 
 # With environment configuration
-LOGGER_LEVEL=DEBUG LOGGER_USE_QUEUE=true node demo/singleton-logger-demo.js
+LOGGER_LEVEL=DEBUG node demo/singleton-logger-demo.js
 ```

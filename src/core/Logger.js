@@ -1,9 +1,4 @@
 import { EventEmitter } from 'events';
-import { writeFile } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Logger Singleton class for centralized logging with structured JSON format
@@ -25,14 +20,9 @@ class Logger extends EventEmitter {
         }
         Logger.instance = this;
 
-        this.queue = [];
-        this.useQueue = process.env.LOGGER_USE_QUEUE === 'true';
-
         this.level = process.env.LOGGER_LEVEL ? 
             (Logger.LOG_LEVELS[process.env.LOGGER_LEVEL.toUpperCase()] || Logger.LOG_LEVELS.INFO) :
             (options.level || Logger.LOG_LEVELS.INFO);
-
-        this.outputFile = process.env.LOGGER_OUTPUT_FILE || resolve(__dirname, 'app.log');
 
         this.context = options.context || 'System';
         this.sessionId = options.sessionId || this.generateSessionId();
@@ -47,19 +37,18 @@ class Logger extends EventEmitter {
         return level >= this.level;
     }
 
-    async logToFile(entry) {
-        const logMessage = JSON.stringify(entry) + '\n';
-        writeFile(this.outputFile, logMessage, { flag: 'a' }, (err) => {
-            if (err) {
-                console.error('Failed to write log:', err);
-            }
-        });
-    }
-
-    async processQueue() {
-        while (this.queue.length) {
-            const entry = this.queue.shift();
-            await this.logToFile(entry);
+    /**
+     * Output log entry to console (STDOUT for INFO/DEBUG, STDERR for WARN/ERROR)
+     * @param {object} entry - Log entry to output
+     */
+    outputToConsole(entry) {
+        const logMessage = JSON.stringify(entry);
+        
+        // Use STDERR for warnings and errors, STDOUT for info and debug
+        if (entry.level === 'WARN' || entry.level === 'ERROR') {
+            console.error(logMessage);
+        } else {
+            console.log(logMessage);
         }
     }
 
@@ -81,13 +70,8 @@ class Logger extends EventEmitter {
         // Emit the event synchronously on the singleton instance
         Logger.instance.emit('log', entry);
         
-        // Handle file logging asynchronously without blocking
-        if (this.useQueue) {
-            this.queue.push(entry);
-            setImmediate(() => this.processQueue());
-        } else {
-            setImmediate(() => this.logToFile(entry));
-        }
+        // Output to console immediately
+        this.outputToConsole(entry);
     }
 
     debug(message, data = {}) {
