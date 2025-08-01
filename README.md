@@ -119,16 +119,16 @@ classDiagram
         +process(userPrompt) Promise~object~
     }
 
-    Injectionator --\>e SendChain : uses
-    Injectionator --\>e ReceiveChain : uses
-    Injectionator --\>e Backend : uses
+    Injectionator --> SendChain : uses
+    Injectionator --> ReceiveChain : uses
+    Injectionator --> Backend : uses
     Chain <|-- SendChain : extends
     Chain <|-- ReceiveChain : extends
     Backend <|-- LLMBackend : extends
     Backend <|-- WebhookBackend : extends
     Backend <|-- ChatBotBackend : extends
-    Chain --\>e Mitigation : contains
-    Mitigation --\>e Injection : wraps
+    Chain --> Mitigation : contains
+    Mitigation --> Injection : wraps
 ```
 
 ### Execution Flow Diagram
