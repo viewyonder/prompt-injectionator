@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Injectionator } from './core/Injectionator.js';
+import { Injectionator } from './Injectionator.js';
 
 /**
  * Save the Injectionator configuration to a JSON file

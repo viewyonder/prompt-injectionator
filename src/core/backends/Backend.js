@@ -55,6 +55,18 @@ export class Backend {
             issues: []
         };
     }
+
+    /**
+     * Export backend to JSON-serializable configuration
+     * @returns {object} JSON configuration
+     */
+    toJSON() {
+        return {
+            name: this.name,
+            type: this.type,
+            ...this.config
+        };
+    }
 }
 
 export default Backend;

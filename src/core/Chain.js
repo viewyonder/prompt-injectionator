@@ -109,6 +109,21 @@ export class Chain {
             mitigations: this.mitigations.map(mit => mit.getDetails())
         };
     }
+
+    /**
+     * Export chain to JSON-serializable configuration
+     * @returns {object} JSON configuration
+     */
+    toJSON() {
+        return {
+            name: this.name,
+            mitigations: this.mitigations.map(mit => ({
+                name: mit.name,
+                description: mit.description,
+                injection: mit.injection.name // Reference to injection by name
+            }))
+        };
+    }
 }
 
 /**
@@ -169,6 +184,19 @@ export class SendChain extends Chain {
             activeMitigations: this.mitigations.filter(m => m.state === 'On').length
         };
     }
+
+    /**
+     * Export send chain to JSON-serializable configuration
+     * @returns {object} JSON configuration
+     */
+    toJSON() {
+        const baseJSON = super.toJSON();
+        return {
+            ...baseJSON,
+            description: this.description,
+            sourceUrl: this.sourceUrl
+        };
+    }
 }
 
 /**
@@ -227,6 +255,20 @@ export class ReceiveChain extends Chain {
             outputTarget: this.outputTarget,
             mitigationCount: this.mitigations.length,
             activeMitigations: this.mitigations.filter(m => m.state === 'On').length
+        };
+    }
+
+    /**
+     * Export receive chain to JSON-serializable configuration
+     * @returns {object} JSON configuration
+     */
+    toJSON() {
+        const baseJSON = super.toJSON();
+        return {
+            ...baseJSON,
+            description: this.description,
+            sourceUrl: this.sourceUrl,
+            outputTarget: this.outputTarget
         };
     }
 }
