@@ -1,4 +1,4 @@
-import Logger from '../Logger.js';
+import logger from '../Logger.js';
 
 /**
  * Base Chain class for processing mitigations in sequence
@@ -9,11 +9,8 @@ export class Chain {
         this.mitigations = mitigations;
         this.id = crypto.randomUUID();
         
-        // Initialize logger
-        this.logger = new Logger({
-            context: `Chain:${this.name}`,
-            level: Logger.LOG_LEVELS.INFO
-        });
+        // Initialize logger with context
+        this.logger = logger.withContext(`Chain:${this.name}`);
         
         this.logger.info('Chain created', {
             name: this.name,

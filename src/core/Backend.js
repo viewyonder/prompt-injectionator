@@ -1,4 +1,4 @@
-import Logger from '../Logger.js';
+import logger from '../Logger.js';
 
 /**
  * Base Backend class that all backend implementations extend
@@ -11,11 +11,8 @@ export class Backend {
         this.id = crypto.randomUUID();
         this.createdAt = new Date();
         
-        // Initialize logger
-        this.logger = new Logger({
-            context: `${this.type}:${this.name}`,
-            level: Logger.LOG_LEVELS.INFO
-        });
+        // Initialize logger with context
+        this.logger = logger.withContext(`${this.type}:${this.name}`);
         
         this.logger.info('Backend created', {
             name: this.name,

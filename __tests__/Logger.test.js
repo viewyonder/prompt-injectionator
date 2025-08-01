@@ -1,26 +1,25 @@
-import { Logger } from '../src/Logger.js';
+import logger, { Logger } from '../src/Logger.js';
 
 describe('Logger', () => {
-    let logger;
+    let testLogger;
 
     beforeEach(() => {
-        logger = new Logger({
-            context: 'TestContext',
-            level: Logger.LOG_LEVELS.DEBUG
-        });
-        logger.enableCollection(); // Enable log collection for testing
+        // Use context-aware logger for testing
+        testLogger = logger.withContext('TestContext');
+        testLogger.setLevel('DEBUG');
+        testLogger.enableCollection(); // Enable log collection for testing
     });
 
     describe('Basic Logging', () => {
         test('should create logger with context', () => {
-            expect(logger.context).toBe('TestContext');
-            expect(logger.getLevel()).toBe('DEBUG');
+            expect(testLogger.context).toBe('TestContext');
+            expect(testLogger.getLevel()).toBe('DEBUG');
         });
 
         test('should log debug messages', () => {
-            logger.debug('Debug message', { extra: 'data' });
+            testLogger.debug('Debug message', { extra: 'data' });
             
-            const logs = logger.getLogs();
+            const logs = testLogger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('DEBUG');
             expect(logs[0].message).toBe('Debug message');
@@ -28,27 +27,27 @@ describe('Logger', () => {
         });
 
         test('should log info messages', () => {
-            logger.info('Info message');
+            testLogger.info('Info message');
             
-            const logs = logger.getLogs();
+            const logs = testLogger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('INFO');
             expect(logs[0].message).toBe('Info message');
         });
 
         test('should log warn messages', () => {
-            logger.warn('Warning message');
+            testLogger.warn('Warning message');
             
-            const logs = logger.getLogs();
+            const logs = testLogger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('WARN');
             expect(logs[0].message).toBe('Warning message');
         });
 
         test('should log error messages', () => {
-            logger.error('Error message');
+            testLogger.error('Error message');
             
-            const logs = logger.getLogs();
+            const logs = testLogger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('ERROR');
             expect(logs[0].message).toBe('Error message');

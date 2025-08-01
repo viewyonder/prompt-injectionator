@@ -1,4 +1,4 @@
-import Logger from '../Logger.js';
+import logger from '../Logger.js';
 
 /**
  * Mitigation class wraps one or more injection objects and decides how to handle detection results.
@@ -15,11 +15,8 @@ export class Mitigation {
         this.action = action; // 'abort', 'flag', 'silent'
         this.id = crypto.randomUUID();
         
-        // Initialize logger
-        this.logger = new Logger({
-            context: `Mitigation:${this.name}`,
-            level: Logger.LOG_LEVELS.INFO
-        });
+        // Initialize logger with context
+        this.logger = logger.withContext(`Mitigation:${this.name}`);
         
         this.logger.info('Mitigation created', {
             name: this.name,

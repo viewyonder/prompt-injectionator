@@ -1,10 +1,14 @@
 import { EventEmitter } from 'events';
+import { writeFile } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
- * Logger class for observability in the Injectionator system
- * Provides structured, event-oriented logging with configurable levels
+ * Logger Singleton class for centralized logging with structured JSON format
  */
-export class Logger extends EventEmitter {
+class Logger extends EventEmitter {
     static LOG_LEVELS = {
         DEBUG: 0,
         INFO: 1,
@@ -12,9 +16,24 @@ export class Logger extends EventEmitter {
         ERROR: 3
     };
 
+    static instance;
+
     constructor(options = {}) {
         super();
-        this.level = options.level !== undefined ? options.level : Logger.LOG_LEVELS.INFO;
+        if (Logger.instance) {
+            return Logger.instance;
+        }
+        Logger.instance = this;
+
+        this.queue = [];
+        this.useQueue = process.env.LOGGER_USE_QUEUE === 'true';
+
+        this.level = process.env.LOGGER_LEVEL ? 
+            (Logger.LOG_LEVELS[process.env.LOGGER_LEVEL.toUpperCase()] || Logger.LOG_LEVELS.INFO) :
+            (options.level || Logger.LOG_LEVELS.INFO);
+
+        this.outputFile = process.env.LOGGER_OUTPUT_FILE || resolve(__dirname, 'app.log');
+
         this.context = options.context || 'System';
         this.sessionId = options.sessionId || this.generateSessionId();
         this.startTime = Date.now();
@@ -28,50 +47,67 @@ export class Logger extends EventEmitter {
         return level >= this.level;
     }
 
-    createLogEntry(level, message, data = {}) {
+    async logToFile(entry) {
+        const logMessage = JSON.stringify(entry) + '\n';
+        writeFile(this.outputFile, logMessage, { flag: 'a' }, (err) => {
+            if (err) {
+                console.error('Failed to write log:', err);
+            }
+        });
+    }
+
+    async processQueue() {
+        while (this.queue.length) {
+            const entry = this.queue.shift();
+            await this.logToFile(entry);
+        }
+    }
+
+    async createLogEntry(level, message, data = {}) {
         const timestamp = new Date().toISOString();
         const elapsed = Date.now() - this.startTime;
-        
-        return {
+
+        const entry = {
             timestamp,
             sessionId: this.sessionId,
             level: Object.keys(Logger.LOG_LEVELS)[level],
             context: this.context,
             message,
             elapsed,
+            ...(this.additionalData || {}),
             ...data
         };
+
+        this.emit('log', entry);
+        if (this.useQueue) {
+            this.queue.push(entry);
+            this.processQueue();
+        } else {
+            this.logToFile(entry);
+        }
     }
 
     debug(message, data = {}) {
         if (this.shouldLog(Logger.LOG_LEVELS.DEBUG)) {
-            const entry = this.createLogEntry(Logger.LOG_LEVELS.DEBUG, message, data);
-            this.emit('log', entry);
-            console.debug(`[${entry.context}] DEBUG: ${message}`, data);
+            this.createLogEntry(Logger.LOG_LEVELS.DEBUG, message, data);
         }
     }
 
     info(message, data = {}) {
         if (this.shouldLog(Logger.LOG_LEVELS.INFO)) {
-            const entry = this.createLogEntry(Logger.LOG_LEVELS.INFO, message, data);
-            this.emit('log', entry);
-            console.info(`[${entry.context}] INFO: ${message}`, data);
+            this.createLogEntry(Logger.LOG_LEVELS.INFO, message, data);
         }
     }
 
     warn(message, data = {}) {
         if (this.shouldLog(Logger.LOG_LEVELS.WARN)) {
-            const entry = this.createLogEntry(Logger.LOG_LEVELS.WARN, message, data);
-            this.emit('log', entry);
-            console.warn(`[${entry.context}] WARN: ${message}`, data);
+            this.createLogEntry(Logger.LOG_LEVELS.WARN, message, data);
         }
     }
 
     error(message, data = {}) {
         if (this.shouldLog(Logger.LOG_LEVELS.ERROR)) {
-            const entry = this.createLogEntry(Logger.LOG_LEVELS.ERROR, message, data);
-            this.emit('log', entry);
-            console.error(`[${entry.context}] ERROR: ${message}`, data);
+            this.createLogEntry(Logger.LOG_LEVELS.ERROR, message, data);
         }
     }
 
@@ -98,15 +134,13 @@ export class Logger extends EventEmitter {
         const message = `Hook ${hookName}: ${result}`;
         
         if (this.shouldLog(level)) {
-            const entry = this.createLogEntry(level, message, {
+            this.createLogEntry(level, message, {
                 event: 'hook_result',
                 hookName,
                 result,
                 processingTime,
                 ...data
             });
-            this.emit('log', entry);
-            console.log(`[${entry.context}] ${message} (${processingTime}ms)`, data);
         }
     }
 
@@ -119,21 +153,18 @@ export class Logger extends EventEmitter {
         });
     }
 
+    // Create a context-aware logger with additional context
+    withContext(context, additionalData = {}) {
+        const contextualLogger = Object.create(this);
+        contextualLogger.context = context;
+        contextualLogger.additionalData = additionalData;
+        
+        return contextualLogger;
+    }
+
     // Create a child logger with additional context
     child(context, additionalData = {}) {
-        const childLogger = new Logger({
-            level: this.level,
-            context: `${this.context}:${context}`,
-            sessionId: this.sessionId
-        });
-
-        // Forward events to parent with additional data
-        childLogger.on('log', (entry) => {
-            const forwardedEntry = { ...entry, ...additionalData };
-            this.emit('log', forwardedEntry);
-        });
-
-        return childLogger;
+        return this.withContext(`${this.context}:${context}`, additionalData);
     }
 
     // Get all logs as an array (useful for testing or export)
@@ -164,4 +195,7 @@ export class Logger extends EventEmitter {
     }
 }
 
-export default Logger;
+const globalLogger = new Logger();
+
+export { Logger };
+export default globalLogger;

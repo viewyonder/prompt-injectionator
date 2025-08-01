@@ -1,11 +1,11 @@
-import Logger from '../Logger.js';
+import logger from '../Logger.js';
 
 /**
  * Injectionator class orchestrates the complete flow using Chain of Responsibility pattern
  * Flow: userPrompt -> sendChain -> LLM -> receiveChain -> user
  */
 export class Injectionator {
-    constructor(name, description, sourceUrl, sendChain, receiveChain, llmBackend, logger = null) {
+    constructor(name, description, sourceUrl, sendChain, receiveChain, llmBackend, customLogger = null) {
         this.name = name || 'Default Injectionator';
         this.description = description || 'Processes prompts through security chains and LLM';
         this.sourceUrl = sourceUrl || null;
@@ -16,11 +16,8 @@ export class Injectionator {
         this.createdAt = new Date();
         this.lastModified = new Date();
         
-        // Initialize logger
-        this.logger = logger || new Logger({
-            context: `Injectionator:${this.name}`,
-            level: Logger.LOG_LEVELS.INFO
-        });
+        // Initialize logger with context
+        this.logger = customLogger ? customLogger : logger.withContext(`Injectionator:${this.name}`);
         
         this.logger.info('Injectionator created', {
             name: this.name,
