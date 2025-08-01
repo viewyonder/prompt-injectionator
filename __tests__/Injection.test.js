@@ -8,14 +8,14 @@ global.crypto = {
 describe('Injection', () => {
     test('should create an injection with name, type, and description', () => {
         const injection = new Injection(
-            'Test Injection',
+            'test-injection',
             'Role Play',
             'A test injection for role playing',
             ['ignore previous instructions']
         );
         
         const details = injection.getDetails();
-        expect(details.name).toBe('Test Injection');
+        expect(details.name).toBe('test-injection');
         expect(details.type).toBe('Role Play');
         expect(details.description).toBe('A test injection for role playing');
         expect(details.patterns).toEqual(['ignore previous instructions']);
@@ -24,7 +24,7 @@ describe('Injection', () => {
 
     test('should detect patterns in user prompt', () => {
         const injection = new Injection(
-            'Role Play',
+            'role-play',
             'Role Play',
             'Detect role playing attempts',
             ['ignore previous instructions', 'act as if']
@@ -44,7 +44,7 @@ describe('Injection', () => {
 
     test('should apply injection to user prompt', () => {
         const injection = new Injection(
-            'Role Play',
+            'role-play',
             'Role Play',
             'Apply role playing injection'
         );

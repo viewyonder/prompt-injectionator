@@ -1,4 +1,6 @@
-import { Backend, LLMBackend, WebhookBackend, ChatBotBackend } from '../src/core/Backend.js';
+import { Backend } from '../src/backends/Backend.js';
+import { LLMBackend } from '../src/backends/LLMBackend.js';
+import { WebhookBackend } from '../src/backends/WebhookBackend.js';
 import { Injectionator } from '../src/core/Injectionator.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';
 
@@ -68,35 +70,6 @@ describe('Backend Classes', () => {
         });
     });
 
-    describe('ChatBotBackend', () => {
-        test('should create chatbot backend with default config', () => {
-            const chatBotBackend = new ChatBotBackend();
-            
-            expect(chatBotBackend.name).toBe('ChatBot Backend');
-            expect(chatBotBackend.type).toBe('chatbot');
-            expect(chatBotBackend.config.botId).toBe('mock-bot-123');
-            expect(chatBotBackend.config.personality).toBe('helpful');
-        });
-
-        test('should process user prompt and return mockup response', async () => {
-            const chatBotBackend = new ChatBotBackend('Test ChatBot');
-            const result = await chatBotBackend.process('Hello, how are you?');
-            
-            expect(result.success).toBe(true);
-            expect(result.response).toBe("I'm only a mockup, not a real boy");
-            expect(result.metadata.backend).toBe('Test ChatBot');
-            expect(result.metadata.type).toBe('chatbot');
-            expect(result.metadata.conversationId).toMatch(/^conv-/);
-        });
-
-        test('should validate configuration', () => {
-            const chatBotBackend = new ChatBotBackend();
-            const validation = chatBotBackend.validate();
-            
-            expect(validation.valid).toBe(true);
-            expect(validation.issues).toHaveLength(0);
-        });
-    });
 });
 
 describe('Injectionator with Backend Integration', () => {
@@ -147,30 +120,6 @@ describe('Injectionator with Backend Integration', () => {
         expect(result.steps[1].result.metadata.webhookUrl).toBe('https://my-api.com/process');
     });
 
-    test('should execute with ChatBot backend', async () => {
-        const chatBotBackend = new ChatBotBackend('Support Bot', {
-            botId: 'support-bot-456',
-            personality: 'friendly'
-        });
-        const sendChain = new SendChain('Test Send Chain', 'Description', null, null, []);
-        const receiveChain = new ReceiveChain('Test Receive Chain', 'Description', null, null, []);
-        
-        const injectionator = new Injectionator(
-            'ChatBot Injectionator',
-            'Testing with chatbot backend',
-            null,
-            sendChain,
-            receiveChain,
-            chatBotBackend
-        );
-
-        const result = await injectionator.execute('I need help with my account');
-        
-        expect(result.success).toBe(true);
-        expect(result.finalResponse).toBe("I'm only a mockup, not a real boy");
-        expect(result.steps[1].result.metadata.botId).toBe('support-bot-456');
-        expect(result.steps[1].result.metadata.personality).toBe('friendly');
-    });
 
     test('should handle backend errors gracefully', async () => {
         // Create a backend that will throw an error

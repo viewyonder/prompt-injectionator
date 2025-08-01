@@ -10,7 +10,7 @@
             {
                 "name": "Role Play Detection",
                 "description": "Blocks role playing attempts",
-                "injection": "Role Play"
+                "injection": "role-play"
             }
         ]
     },
@@ -23,7 +23,7 @@
             {
                 "name": "Data Sanitization",
                 "description": "Removes sensitive data",
-                "injection": "Sanitize"
+                "injection": "sanitize"
             }
         ]
     },
@@ -33,8 +33,8 @@
         "apiKey": "test-api-key"
     },
     "injections": {
-        "Role Play": {
-            "name": "Role Play",
+        "role-play": {
+            "name": "role-play",
             "type": "Role Play",
             "description": "Instruct LLM to simulate an expert",
             "patterns": [
@@ -44,8 +44,8 @@
                 }
             ]
         },
-        "Sanitize": {
-            "name": "Sanitize",
+        "sanitize": {
+            "name": "sanitize",
             "type": "Data Sanitization",
             "description": "Remove sensitive data",
             "patterns": [

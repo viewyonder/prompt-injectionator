@@ -1,5 +1,5 @@
 import { Backend } from './Backend.js';
-import apiKeyManager from '../ApiKeyManager.js';
+import apiKeyManager from '../core/ApiKeyManager.js';
 
 /**
  * LLM Backend mockup - simulates calling a Large Language Model API

@@ -63,8 +63,8 @@ describe('InjectionatorConfig Tests', () => {
         expect(savedData.injections).not.toBeNull();
         expect(savedData.injections['Role Play Detection']).toBeDefined();
         expect(savedData.injections['Data Sanitization']).toBeDefined();
-        expect(savedData.injections['Role Play Detection'].name).toBe('Role Play');
-        expect(savedData.injections['Data Sanitization'].name).toBe('Sanitize');
+        expect(savedData.injections['Role Play Detection'].name).toBe('role-play');
+        expect(savedData.injections['Data Sanitization'].name).toBe('sanitize');
 
         // Cleanup
         fs.unlinkSync(savePath);

@@ -1,4 +1,6 @@
-import { LLMBackend, WebhookBackend, ChatBotBackend } from '../src/core/Backend.js';
+import { LLMBackend } from '../src/backends/LLMBackend.js';
+import { WebhookBackend } from '../src/backends/WebhookBackend.js';
+import { Backend } from '../src/backends/Backend.js';
 import { Injectionator } from '../src/core/Injectionator.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';
 import { Mitigation } from '../src/core/Mitigation.js';
@@ -118,53 +120,53 @@ async function exampleWebhookBackend() {
 }
 
 /**
- * Example 3: Using ChatBot Backend with Injectionator
+ * Example 3: Using Mock Backend with Injectionator
  */
-async function exampleChatBotBackend() {
-    console.log('\\n=== Example 3: ChatBot Backend ===');
+async function exampleMockBackend() {
+    console.log('\\n=== Example 3: Mock Backend ===');
     
-    // Create chatbot backend with custom configuration
-    const chatBotBackend = new ChatBotBackend('Customer Support Bot', {
-        botId: 'support-bot-v2',
-        apiUrl: 'https://api.chatservice.com/v1/chat',
-        personality: 'professional',
-        language: 'en-US',
-        contextWindow: 8000
+    // Create mock backend with custom configuration
+    const mockBackend = new LLMBackend('Mock Backend', {
+        provider: 'mockup',
+        model: 'mock-model',
+        responseTemplate: 'Mock response: {{prompt}}'
     });
     
     // Create chains with role-play detection
     const rolePlayInjection = new Injection(
-        'Role Play Detection',
-        'roleplay',
+        'role-play',
+        'Role Play',
         'Detects attempts to make bot assume different roles',
         ['act as', 'pretend to be', 'simulate', 'roleplay', 'you are now']
     );
     
     const rolePlayMitigation = new Mitigation(
         'Role Play Blocker',
-        'Active',
-        'Prevents unauthorized role-playing',
-        [rolePlayInjection]
+        'Blocks unauthorized role-playing attempts',
+        null,
+        [rolePlayInjection],
+        'On',
+        'Active'
     );
     
     const sendChain = new SendChain(
-        'ChatBot Send Chain',
+        'Mock Send Chain',
         'Validates user messages',
-        'https://github.com/example/chatbot-chain',
+        'https://github.com/example/mock-chain',
         null,
         [rolePlayMitigation]
     );
     
-    const receiveChain = new ReceiveChain('ChatBot Receive Chain', 'Processes bot responses');
+    const receiveChain = new ReceiveChain('Mock Receive Chain', 'Processes mock responses');
     
     // Create injectionator
     const injectionator = new Injectionator(
-        'ChatBot Injectionator',
-        'Manages chatbot interactions with security',
-        'https://github.com/example/chatbot-injectionator',
+        'Mock Injectionator',
+        'Manages mock interactions with security',
+        'https://github.com/example/mock-injectionator',
         sendChain,
         receiveChain,
-        chatBotBackend
+        mockBackend
     );
     
     // Execute with user prompt
@@ -173,9 +175,9 @@ async function exampleChatBotBackend() {
     console.log('Execution Result:', {
         success: result.success,
         finalResponse: result.finalResponse,
-        botId: result.steps[1]?.result?.metadata?.botId,
-        personality: result.steps[1]?.result?.metadata?.personality,
-        conversationId: result.steps[1]?.result?.metadata?.conversationId
+        provider: result.steps[1]?.result?.metadata?.provider,
+        model: result.steps[1]?.result?.metadata?.model,
+        processingTime: result.steps[1]?.result?.metadata?.processingTime + 'ms'
     });
     
     return result;
@@ -193,13 +195,8 @@ function exampleBackendValidation() {
         method: ''
     });
     
-    const invalidChatBot = new ChatBotBackend('Invalid ChatBot', {
-        botId: '',
-        apiUrl: 'invalid-url'
-    });
     
     console.log('Invalid Webhook Validation:', invalidWebhook.validate());
-    console.log('Invalid ChatBot Validation:', invalidChatBot.validate());
     
     // Create valid configurations
     const validLLM = new LLMBackend();
@@ -215,8 +212,14 @@ async function exampleBackendSwitching() {
     
     // Create different backends
     const llmBackend = new LLMBackend('Primary LLM');
-    const webhookBackend = new WebhookBackend('Fallback Webhook');
-    const chatBotBackend = new ChatBotBackend('Emergency ChatBot');
+    const webhookBackend = new WebhookBackend('Fallback Webhook', {
+        url: 'https://api.example.com/webhook',
+        method: 'POST'
+    });
+    const mockBackend = new LLMBackend('Mock Backend', {
+        provider: 'mockup',
+        model: 'mock-model'
+    });
     
     // Create a single injectionator
     const sendChain = new SendChain('Flexible Send Chain');
@@ -243,10 +246,10 @@ async function exampleBackendSwitching() {
     const webhookResult = await injectionator.execute(testPrompt);
     console.log('Webhook Result:', webhookResult.finalResponse);
     
-    // Switch to chatbot backend
-    injectionator.setLLMBackend(chatBotBackend);
-    const chatBotResult = await injectionator.execute(testPrompt);
-    console.log('ChatBot Result:', chatBotResult.finalResponse);
+    // Switch to mock backend
+    injectionator.setLLMBackend(mockBackend);
+    const mockResult = await injectionator.execute(testPrompt);
+    console.log('Mock Result:', mockResult.finalResponse);
 }
 
 /**
@@ -256,7 +259,7 @@ async function runAllExamples() {
     try {
         await exampleLLMBackend();
         await exampleWebhookBackend();
-        await exampleChatBotBackend();
+        await exampleMockBackend();
         exampleBackendValidation();
         await exampleBackendSwitching();
         
@@ -270,7 +273,7 @@ async function runAllExamples() {
 export {
     exampleLLMBackend,
     exampleWebhookBackend,
-    exampleChatBotBackend,
+    exampleMockBackend,
     exampleBackendValidation,
     exampleBackendSwitching,
     runAllExamples

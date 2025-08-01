@@ -1,7 +1,7 @@
 import logger from './Logger.js';
 import { Injection } from './Injection.js';
 import { SendChain, ReceiveChain } from './Chain.js';
-import { LLMBackend } from './backends/LLMBackend.js';
+import { LLMBackend } from '../backends/LLMBackend.js';
 import { Mitigation } from './Mitigation.js';
 import apiKeyManager from './ApiKeyManager.js';
 

@@ -10,7 +10,7 @@ global.crypto = {
 describe('Injectionator System Tests', () => {
   test('Create an injection and detect a pattern', () => {
     const injection = new Injection(
-      'Role Play',
+      'role-play',
       'Role Play',
       'Instruct LLM to simulate an expert',
       ['simulate an expert']
@@ -24,7 +24,7 @@ describe('Injectionator System Tests', () => {
 
   test('Mitigate a detected injection in Active mode', () => {
     const injection = new Injection(
-      'Role Play',
+      'role-play',
       'Role Play',
       'Instruct LLM to simulate an expert',
       ['simulate an expert']
@@ -47,7 +47,7 @@ describe('Injectionator System Tests', () => {
 
   test('Process a prompt using the SendChain', async () => {
     const injection1 = new Injection(
-      'Extraction',
+      'extraction',
       'Prompt Extraction',
       'Extract system prompt',
       ['system prompt']
@@ -73,7 +73,7 @@ describe('Injectionator System Tests', () => {
 
   test('Process a response using the ReceiveChain', async () => {
     const injection2 = new Injection(
-      'Sanitize',
+      'sanitize',
       'Data Sanitization',
       'Remove sensitive data',
       [/sensitive/gi]
