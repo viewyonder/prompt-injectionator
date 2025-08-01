@@ -106,32 +106,19 @@ export class Injectionator {
     }
 
     /**
-     * Mock LLM call - in real implementation this would call actual LLM APIs
-     * @param {string} prompt - The user prompt to send to LLM
-     * @returns {object} LLM response result
+     * Call the configured backend to process the user prompt
+     * @param {string} prompt - The user prompt to send to backend
+     * @returns {object} Backend response result
      */
     async _callLLM(prompt) {
         try {
-            // Mock implementation - replace with actual LLM API calls
             if (!this.llmBackend) {
-                throw new Error('No LLM backend configured');
+                throw new Error('No backend configured');
             }
 
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Mock response based on backend type
-            const mockResponse = `Mock response from ${this.llmBackend.provider || 'LLM'} for prompt: "${prompt}"`;
-            
-            return {
-                success: true,
-                response: mockResponse,
-                metadata: {
-                    backend: this.llmBackend,
-                    tokens: prompt.length,
-                    processingTime: 100
-                }
-            };
+            // Use the backend's process method
+            const result = await this.llmBackend.process(prompt);
+            return result;
         } catch (error) {
             return {
                 success: false,
