@@ -1,25 +1,25 @@
 import logger, { Logger } from '../src/Logger.js';
 
 describe('Logger', () => {
-    let testLogger;
-
     beforeEach(() => {
-        // Use context-aware logger for testing
-        testLogger = logger.withContext('TestContext');
-        testLogger.setLevel('DEBUG');
-        testLogger.enableCollection(); // Enable log collection for testing
+        // Reset state before each test
+        logger.reset();
+        // Set a default level and enable collection for all tests
+        logger.setLevel('DEBUG');
+        logger.enableCollection();
     });
 
     describe('Basic Logging', () => {
         test('should create logger with context', () => {
-            expect(testLogger.context).toBe('TestContext');
-            expect(testLogger.getLevel()).toBe('DEBUG');
+            const contextLogger = logger.withContext('TestContext');
+            expect(contextLogger.context).toBe('TestContext');
+            expect(logger.getLevel()).toBe('DEBUG');
         });
 
         test('should log debug messages', () => {
-            testLogger.debug('Debug message', { extra: 'data' });
+            logger.debug('Debug message', { extra: 'data' });
             
-            const logs = testLogger.getLogs();
+            const logs = logger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('DEBUG');
             expect(logs[0].message).toBe('Debug message');
@@ -27,27 +27,27 @@ describe('Logger', () => {
         });
 
         test('should log info messages', () => {
-            testLogger.info('Info message');
+            logger.info('Info message');
             
-            const logs = testLogger.getLogs();
+            const logs = logger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('INFO');
             expect(logs[0].message).toBe('Info message');
         });
 
         test('should log warn messages', () => {
-            testLogger.warn('Warning message');
+            logger.warn('Warning message');
             
-            const logs = testLogger.getLogs();
+            const logs = logger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('WARN');
             expect(logs[0].message).toBe('Warning message');
         });
 
         test('should log error messages', () => {
-            testLogger.error('Error message');
+            logger.error('Error message');
             
-            const logs = testLogger.getLogs();
+            const logs = logger.getLogs();
             expect(logs).toHaveLength(1);
             expect(logs[0].level).toBe('ERROR');
             expect(logs[0].message).toBe('Error message');
@@ -135,28 +135,20 @@ describe('Logger', () => {
     describe('Child Loggers', () => {
         test('should create child logger with extended context', () => {
             const childLogger = logger.child('ChildContext', { parentId: 'test-123' });
-            childLogger.enableCollection();
             
             childLogger.info('Child message');
             
-            const childLogs = childLogger.getLogs();
-            expect(childLogs).toHaveLength(1);
-            expect(childLogs[0].context).toBe('TestContext:ChildContext');
-            // Additional data is forwarded to parent, not stored in child logs directly
-            expect(childLogs[0].parentId).toBeUndefined();
-            
-            // Check that parent receives the additional data
-            const parentLogs = logger.getLogs();
-            const forwardedEntry = parentLogs.find(entry => entry.message === 'Child message');
-            expect(forwardedEntry).toBeDefined();
-            expect(forwardedEntry.parentId).toBe('test-123');
+            const logs = logger.getLogs();
+            expect(logs).toHaveLength(1);
+            expect(logs[0].context).toBe('System:ChildContext');
+            expect(logs[0].parentId).toBe('test-123');
         });
 
         test('should forward child events to parent', (done) => {
             const childLogger = logger.child('ChildContext');
             
             logger.on('log', (entry) => {
-                expect(entry.context).toBe('TestContext:ChildContext');
+                expect(entry.context).toBe('System:ChildContext');
                 expect(entry.message).toBe('Child message');
                 done();
             });
@@ -170,7 +162,7 @@ describe('Logger', () => {
             logger.on('log', (entry) => {
                 expect(entry.level).toBe('INFO');
                 expect(entry.message).toBe('Test message');
-                expect(entry.context).toBe('TestContext');
+                expect(entry.context).toBe('System');
                 expect(entry.sessionId).toBeDefined();
                 expect(entry.timestamp).toBeDefined();
                 expect(entry.elapsed).toBeGreaterThanOrEqual(0);

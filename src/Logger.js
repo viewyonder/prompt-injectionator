@@ -63,7 +63,7 @@ class Logger extends EventEmitter {
         }
     }
 
-    async createLogEntry(level, message, data = {}) {
+    createLogEntry(level, message, data = {}) {
         const timestamp = new Date().toISOString();
         const elapsed = Date.now() - this.startTime;
 
@@ -78,12 +78,15 @@ class Logger extends EventEmitter {
             ...data
         };
 
-        this.emit('log', entry);
+        // Emit the event synchronously on the singleton instance
+        Logger.instance.emit('log', entry);
+        
+        // Handle file logging asynchronously without blocking
         if (this.useQueue) {
             this.queue.push(entry);
-            this.processQueue();
+            setImmediate(() => this.processQueue());
         } else {
-            this.logToFile(entry);
+            setImmediate(() => this.logToFile(entry));
         }
     }
 
@@ -157,7 +160,8 @@ class Logger extends EventEmitter {
     withContext(context, additionalData = {}) {
         const contextualLogger = Object.create(this);
         contextualLogger.context = context;
-        contextualLogger.additionalData = additionalData;
+        contextualLogger.additionalData = { ...this.additionalData, ...additionalData };
+        contextualLogger.logs = this.logs; // Share the same logs array
         
         return contextualLogger;
     }
@@ -174,10 +178,30 @@ class Logger extends EventEmitter {
 
     // Enable log collection (stores logs in memory)
     enableCollection() {
-        this.logs = [];
+        if (!this.logs) {
+            this.logs = [];
+        }
+        // Remove existing listeners to avoid duplicates
+        this.removeAllListeners('log');
         this.on('log', (entry) => {
             this.logs.push(entry);
         });
+    }
+
+    // Clear collected logs
+    clearLogs() {
+        if (this.logs) {
+            this.logs.length = 0;
+        }
+    }
+
+    // Reset logger state (useful for testing)
+    reset() {
+        this.clearLogs();
+        this.removeAllListeners();
+        this.level = Logger.LOG_LEVELS.INFO;
+        this.context = 'System';
+        this.additionalData = {};
     }
 
     // Set log level dynamically
