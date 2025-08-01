@@ -100,12 +100,12 @@ classDiagram
         +getDetails() object
     }
 
-    Injectionator -- SendChain : uses
-    Injectionator -- ReceiveChain : uses
-    Injectionator -- Backend : uses
-SendChain -- Mitigation : wraps
-    ReceiveChain -- Mitigation : wraps
-    Mitigation -- Injection : wraps
+    Injectionator --> SendChain : uses
+    Injectionator --> ReceiveChain : uses
+    Injectionator --> Backend : uses
+    SendChain --> Mitigation : wraps
+    ReceiveChain --> Mitigation : wraps
+    Mitigation --> Injection : wraps
 ```
 
 ### Execution Flow Diagram
