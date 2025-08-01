@@ -11,7 +11,7 @@
  * - Structured JSON logs
  */
 
-import logger from '../src/core/Logger.js';
+import logger, { Logger } from '../src/core/Logger.js';
 import { Injectionator } from '../src/core/Injectionator.js';
 import { LLMBackend } from '../src/core/Backend.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';

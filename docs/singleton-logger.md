@@ -44,7 +44,7 @@ export LOGGER_OUTPUT_FILE=/var/log/injectionator.log
 ### Basic Usage in Components
 
 ```javascript
-import logger from './Logger.js';
+import logger from '../src/core/Logger.js';
 
 class MyComponent {
     constructor(name) {
