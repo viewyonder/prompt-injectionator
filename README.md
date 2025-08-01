@@ -24,54 +24,50 @@ classDiagram
         -string sourceUrl
         -SendChain sendChain
         -ReceiveChain receiveChain
-        -Backend backend
+        -Backend llmBackend
         -Date createdAt
         -Date lastModified
         +execute(userPrompt) Promise~object~
         +setSendChain(sendChain) void
         +setReceiveChain(receiveChain) void
-        +setBackend(backend) void
+        +setLLMBackend(llmBackend) void
         +getDetails() object
         +validate() object
         +toJSON() object
         +fromJSON(config)$ Injectionator
     }
 
-    class Backend {
-        +process(userPrompt) Promise~string~
-    }
-
-    class SendChain {
+    class Chain {
+        <<abstract>>
         -string id
         -string name
-        -string description
-        -string sourceUrl
-        -string type
-        -object backend
         -Mitigation[] mitigations
-        +process(userPrompt) Promise~object~
-        +setBackend(backend) void
-        +getBackend() object
+        +process(input) Promise~object~
         +addMitigation(mitigation) void
         +removeMitigation(mitigationId) void
         +reorderMitigation(fromIndex, toIndex) void
         +getDetails() object
     }
 
+    class SendChain {
+        -string description
+        -string sourceUrl
+        -string type
+        -Backend backend
+        +process(userPrompt) Promise~object~
+        +setBackend(backend) void
+        +getBackend() object
+        +getDetails() object
+    }
+
     class ReceiveChain {
-        -string id
-        -string name
         -string description
         -string sourceUrl
         -string type
         -object outputTarget
-        -Mitigation[] mitigations
         +process(llmResponse) Promise~object~
         +setOutputTarget(outputTarget) void
         +getOutputTarget() object
-        +addMitigation(mitigation) void
-        +removeMitigation(mitigationId) void
-        +reorderMitigation(fromIndex, toIndex) void
         +getDetails() object
     }
 
@@ -82,7 +78,7 @@ classDiagram
         -string sourceUrl
         -string state
         -string mode
-        -Injection injection
+        -Injection[] injections
         -string action
         +process(userPrompt) object
         +setMode(newMode) void
@@ -100,12 +96,39 @@ classDiagram
         +getDetails() object
     }
 
-    Injectionator --> SendChain : uses
-    Injectionator --> ReceiveChain : uses
-    Injectionator --> Backend : uses
-    SendChain --> Mitigation : wraps
-    ReceiveChain --> Mitigation : wraps
-    Mitigation --> Injection : wraps
+    class Backend {
+        -string id
+        -string name
+        -string type
+        -object config
+        -Date createdAt
+        +process(userPrompt) Promise~object~
+        +validate() object
+        +getDetails() object
+    }
+
+    class LLMBackend {
+        +process(userPrompt) Promise~object~
+    }
+
+    class WebhookBackend {
+        +process(userPrompt) Promise~object~
+    }
+
+    class ChatBotBackend {
+        +process(userPrompt) Promise~object~
+    }
+
+    Injectionator --\>e SendChain : uses
+    Injectionator --\>e ReceiveChain : uses
+    Injectionator --\>e Backend : uses
+    Chain <|-- SendChain : extends
+    Chain <|-- ReceiveChain : extends
+    Backend <|-- LLMBackend : extends
+    Backend <|-- WebhookBackend : extends
+    Backend <|-- ChatBotBackend : extends
+    Chain --\>e Mitigation : contains
+    Mitigation --\>e Injection : wraps
 ```
 
 ### Execution Flow Diagram
