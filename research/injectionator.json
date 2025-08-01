@@ -61,7 +61,7 @@
     "name": "MainLLM",
     "provider": "openai",
     "url": "https://api.openai.com/v1/chat/completions",
-    "apikey": "API KEY LABEL" 
+    "apiKeyRef": "OPENAI_API_KEY"
   },
   "observability": {
     "logging": {

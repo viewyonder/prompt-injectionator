@@ -1,4 +1,5 @@
 import { Backend } from './Backend.js';
+import apiKeyManager from '../ApiKeyManager.js';
 
 /**
  * LLM Backend mockup - simulates calling a Large Language Model API
@@ -11,8 +12,12 @@ export class LLMBackend extends Backend {
             apiUrl: 'https://api.mockup.com/v1/chat/completions',
             maxTokens: 1000,
             temperature: 0.7,
+            apiKeyRef: null, // Reference to API key, not the key itself
             ...config
         });
+        
+        // Resolve API key at runtime if reference is provided
+        this.apiKey = config.apiKeyRef ? apiKeyManager.resolveKey(config.apiKeyRef) : null;
     }
 
     /**
@@ -82,6 +87,15 @@ export class LLMBackend extends Backend {
         
         if (!this.config.model) {
             issues.push('LLM model is required');
+        }
+        
+        // Check if API key reference is provided and can be resolved
+        if (this.config.apiKeyRef) {
+            if (!this.apiKey) {
+                issues.push(`API key '${this.config.apiKeyRef}' could not be resolved. Check environment variables or CLI arguments.`);
+            }
+        } else if (this.config.provider !== 'mockup') {
+            issues.push('API key reference (apiKeyRef) is required for non-mockup providers');
         }
 
         return {

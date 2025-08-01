@@ -3,10 +3,14 @@ import { Injection } from './Injection.js';
 import { SendChain, ReceiveChain } from './Chain.js';
 import { LLMBackend } from './backends/LLMBackend.js';
 import { Mitigation } from './Mitigation.js';
+import apiKeyManager from './ApiKeyManager.js';
+
+// Parse CLI arguments to register API keys
+apiKeyManager.parseCliArguments(process.argv);
 
 /**
  * Injectionator class orchestrates the complete flow using Chain of Responsibility pattern
- * Flow: userPrompt -> sendChain -> LLM -> receiveChain -> user
+ * Flow: userPrompt -43e sendChain -43e LLM -43e receiveChain -43e user
  */
 export class Injectionator {
     constructor(name, description, sourceUrl, sendChain, receiveChain, llmBackend, customLogger = null) {

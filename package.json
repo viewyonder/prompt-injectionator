@@ -4,6 +4,8 @@
     "jest": "^29.7.0"
   },
   "scripts": {
-    "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest"
+    "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
+    "example:secure-api": "node examples/secure-api-usage.js",
+    "example:help": "node examples/secure-api-usage.js --help"
   }
 }
