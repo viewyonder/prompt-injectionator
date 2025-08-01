@@ -183,6 +183,43 @@ Prompt injections make your app do things you didn't intend. That might be bad.
 
 ## Core Functionality
 
+### Logging
+
+Injectionator logs provide detailed information about all operations, including:
+- Start and end times for each phase of execution (send chain, backend call, receive chain)
+- Decisions made at each hook
+- Errors and their causes if they occur
+- Information is logged using a standard logger, allowing customization of log levels and outputs.
+
+### Dehydrate and Rehydrate Configuration
+
+- **Dehydrate (Save):**
+  - Use the `saveInjectionatorConfig()` function to serialize an Injectionator instance into a JSON file.
+  - The function calls `injectionator.toJSON()` to capture the complete configuration, allowing it to be saved in a human-readable format.
+
+- **Rehydrate (Load):**
+  - Use the `loadInjectionatorConfig()` function to load a JSON configuration file into a new Injectionator instance.
+  - The function calls `Injectionator.fromJSON()` to restore the Injectionator and all its child objects, maintaining complete fidelity to the original configuration.
+
+#### Usage Examples
+
+```javascript
+import { saveInjectionatorConfig, loadInjectionatorConfig } from './src/core/InjectionatorConfig.js';
+
+// Dehydrate: Save an injectionator to JSON file
+saveInjectionatorConfig(myInjectionator, './configs/my-security-config.json');
+
+// Rehydrate: Load an injectionator from JSON file
+const restoredInjectionator = loadInjectionatorConfig('./configs/my-security-config.json');
+
+// The restored injectionator maintains all child objects:
+// - SendChain and ReceiveChain configurations
+// - Individual mitigation settings
+// - Injection patterns and detection rules  
+// - Backend endpoint configurations
+// - All metadata and relationships
+```
+
 ### Injectionator Configurator
 
 Users create and save Injectionators by dragging and dropping hooks (e.g., Filter, Match, Token) into "Send" and "Receive" lanes, configuring them to check for patterns like PII or malicious prompts.
