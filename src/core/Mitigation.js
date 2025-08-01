@@ -1,15 +1,15 @@
 /**
- * Mitigation class wraps a single injection object and decides how to handle detection results
+ * Mitigation class wraps one or more injection objects and decides how to handle detection results.
  * Contains state (On/Off), mode (Active/Passive), and action handling
  */
 export class Mitigation {
-    constructor(name, description, sourceUrl, injection, state = 'On', mode = 'Active', action = 'abort') {
+    constructor(name, description, sourceUrl, injections = [], state = 'On', mode = 'Active', action = 'abort') {
         this.name = name;
         this.description = description;
         this.sourceUrl = sourceUrl; // GitHub repo URL or source reference
         this.state = state; // 'On' or 'Off'
         this.mode = mode; // 'Active' or 'Passive'
-        this.injection = injection; // Single Injection object
+        this.injections = injections; // Array of Injection objects
         this.action = action; // 'abort', 'flag', 'silent'
         this.id = crypto.randomUUID();
     }
