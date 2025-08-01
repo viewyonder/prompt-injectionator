@@ -4,6 +4,6 @@
     "jest": "^29.7.0"
   },
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest"
   }
 }

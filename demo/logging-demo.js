@@ -11,7 +11,7 @@ import { SendChain, ReceiveChain } from '../src/core/Chain.js';
 import { Mitigation } from '../src/core/Mitigation.js';
 import { Injection } from '../src/core/Injection.js';
 import { LLMBackend, WebhookBackend, ChatBotBackend } from '../src/core/Backend.js';
-import Logger from '../src/Logger.js';
+import logger from '../src/core/Logger.js';
 
 console.log('🔍 Prompt Injectionator - Logging Demonstration\n');
 

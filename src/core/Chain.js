@@ -1,4 +1,4 @@
-import logger from '../Logger.js';
+import logger from './Logger.js';
 
 /**
  * Base Chain class for processing mitigations in sequence

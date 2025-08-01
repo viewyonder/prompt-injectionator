@@ -1,4 +1,4 @@
-import logger from '../Logger.js';
+import logger from './Logger.js';
 
 /**
  * Base Backend class that all backend implementations extend

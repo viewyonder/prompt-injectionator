@@ -1,4 +1,4 @@
-import logger from '../Logger.js';
+import logger from './Logger.js';
 
 /**
  * Mitigation class wraps one or more injection objects and decides how to handle detection results.

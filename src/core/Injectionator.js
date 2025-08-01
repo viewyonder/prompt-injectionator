@@ -1,4 +1,4 @@
-import logger from '../Logger.js';
+import logger from './Logger.js';
 import { Injection } from './Injection.js';
 import { SendChain, ReceiveChain } from './Chain.js';
 import { LLMBackend } from './Backend.js';
