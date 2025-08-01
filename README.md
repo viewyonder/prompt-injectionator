@@ -37,37 +37,37 @@ classDiagram
         +fromJSON(config)$ Injectionator
     }
 
-    class Chain {
-        <<abstract>>
+    class SendChain {
         -string id
         -string name
+        -string description
+        -string sourceUrl
+        -string type
+        -object backend
         -Mitigation[] mitigations
-        +process(input) Promise~object~
+        +process(userPrompt) Promise~object~
+        +setBackend(backend) void
+        +getBackend() object
         +addMitigation(mitigation) void
         +removeMitigation(mitigationId) void
         +reorderMitigation(fromIndex, toIndex) void
         +getDetails() object
     }
 
-    class SendChain {
-        -string description
-        -string sourceUrl
-        -string type
-        -object backend
-        +process(userPrompt) Promise~object~
-        +setBackend(backend) void
-        +getBackend() object
-        +getDetails() object
-    }
-
     class ReceiveChain {
+        -string id
+        -string name
         -string description
         -string sourceUrl
         -string type
         -object outputTarget
+        -Mitigation[] mitigations
         +process(llmResponse) Promise~object~
         +setOutputTarget(outputTarget) void
         +getOutputTarget() object
+        +addMitigation(mitigation) void
+        +removeMitigation(mitigationId) void
+        +reorderMitigation(fromIndex, toIndex) void
         +getDetails() object
     }
 
@@ -98,9 +98,8 @@ classDiagram
 
     Injectionator --> SendChain : uses
     Injectionator --> ReceiveChain : uses
-    Chain <|-- SendChain : extends
-    Chain <|-- ReceiveChain : extends
-    Chain --> Mitigation : contains
+SendChain --> Mitigation : wraps
+    ReceiveChain --> Mitigation : wraps
     Mitigation --> Injection : wraps
 ```
 
