@@ -323,16 +323,16 @@ export class Injectionator {
 
         // Construct mitigations for chains
         const constructMitigations = (chainConfig, pipelineType) =>
-            chainConfig.mitigations.map((mitConfig) => new Mitigation(
-                mitConfig.name,
-                mitConfig.description,
-                null, // sourceUrl
-                [injections[mitConfig.injection]], // injections array  
-                'On', // default state
-                'Active', // default mode
-                'abort', // default action
-                pipelineType // pipeline type
-            ));
+            chainConfig.mitigations.map((mitConfig) => new Mitigation({
+                name: mitConfig.name,
+                description: mitConfig.description,
+                sourceUrl: null,
+                injections: [injections[mitConfig.injection]],
+                state: 'On',
+                mode: 'Active',
+                action: 'abort',
+                pipeline: pipelineType
+            }));
 
         // Construct send chain
         const sendChain = new SendChain(

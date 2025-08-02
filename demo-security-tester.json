@@ -1,0 +1,153 @@
+{
+  "name": "Demo Security Tester",
+  "description": "Comprehensive security testing injectionator for demo",
+  "sourceUrl": null,
+  "sendChain": {
+    "name": "Comprehensive Testing Chain",
+    "mitigations": [
+      {
+        "name": "Role Play Detection",
+        "description": "Detects role-playing attempts",
+        "injection": "role-play-detection"
+      },
+      {
+        "name": "System Prompt Extraction",
+        "description": "Detects system prompt extraction attempts",
+        "injection": "system-prompt-extraction"
+      },
+      {
+        "name": "Instruction Override",
+        "description": "Detects instruction override attempts",
+        "injection": "instruction-override"
+      }
+    ],
+    "description": "Tests multiple injection patterns",
+    "sourceUrl": null
+  },
+  "receiveChain": {
+    "name": "Response Analysis Chain",
+    "mitigations": [
+      {
+        "name": "Sensitive Data Filter",
+        "description": "Filters potentially sensitive data",
+        "injection": "sensitive-data-filter"
+      }
+    ],
+    "description": "Analyzes responses for leaked information",
+    "sourceUrl": null,
+    "outputTarget": "user"
+  },
+  "backend": {
+    "name": "Test LLM Backend",
+    "type": "llm",
+    "provider": "mockup",
+    "model": "mock-gpt-4",
+    "apiUrl": "https://api.mockup.com/v1/chat/completions",
+    "maxTokens": 1000,
+    "temperature": 0.7,
+    "apiKeyRef": null,
+    "apiKey": null
+  },
+  "injections": {
+    "Role Play Detection": {
+      "name": "role-play-detection",
+      "type": "Role Play Detection",
+      "description": "Detects attempts to make LLM roleplay as specific characters",
+      "patterns": [
+        {
+          "type": "string",
+          "value": "act as"
+        },
+        {
+          "type": "string",
+          "value": "pretend to be"
+        },
+        {
+          "type": "string",
+          "value": "simulate"
+        },
+        {
+          "type": "regex",
+          "source": "you are (now )?a",
+          "flags": "gi"
+        }
+      ]
+    },
+    "System Prompt Extraction": {
+      "name": "system-prompt-extraction",
+      "type": "System Prompt Extraction",
+      "description": "Detects attempts to reveal system prompts",
+      "patterns": [
+        {
+          "type": "string",
+          "value": "system prompt"
+        },
+        {
+          "type": "string",
+          "value": "initial instructions"
+        },
+        {
+          "type": "regex",
+          "source": "show.*instructions",
+          "flags": "gi"
+        },
+        {
+          "type": "regex",
+          "source": "reveal.*prompt",
+          "flags": "gi"
+        }
+      ]
+    },
+    "Instruction Override": {
+      "name": "instruction-override",
+      "type": "Instruction Override",
+      "description": "Detects attempts to override previous instructions",
+      "patterns": [
+        {
+          "type": "string",
+          "value": "ignore previous instructions"
+        },
+        {
+          "type": "string",
+          "value": "forget everything"
+        },
+        {
+          "type": "string",
+          "value": "new instructions"
+        },
+        {
+          "type": "regex",
+          "source": "instead.*do",
+          "flags": "gi"
+        }
+      ]
+    },
+    "Sensitive Data Filter": {
+      "name": "sensitive-data-filter",
+      "type": "Sensitive Data Filter",
+      "description": "Filters potentially sensitive information from responses",
+      "patterns": [
+        {
+          "type": "regex",
+          "source": "api[_-]?key",
+          "flags": "gi"
+        },
+        {
+          "type": "regex",
+          "source": "password",
+          "flags": "gi"
+        },
+        {
+          "type": "regex",
+          "source": "token",
+          "flags": "gi"
+        },
+        {
+          "type": "regex",
+          "source": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+          "flags": "g"
+        }
+      ]
+    }
+  }
+}
