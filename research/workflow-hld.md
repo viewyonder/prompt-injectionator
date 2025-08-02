@@ -1,4 +1,4 @@
-# Workflow
+# Workflow High Level
 
 I'm trying to establish a workflow that helps solo productivity and prepares for inviting others to join the team.
 
