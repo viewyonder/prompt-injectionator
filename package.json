@@ -9,6 +9,11 @@
     "example:help": "node examples/secure-api-usage.js --help"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1"
+    "@google/generative-ai": "^0.24.1",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "inquirer": "^12.9.0",
+    "ora": "^8.2.0",
+    "table": "^6.9.0"
   }
 }
