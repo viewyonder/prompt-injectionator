@@ -9,6 +9,20 @@
 > THIS PROJECT IS IN VERY EARLY DEVELOPMENT AND IS UNUSABLE. ONCE A RELEASE IS READY THIS PAGE WILL BE UPDATED.
 > @ JUL 31 2025: IN TDD MODE TO GET A CLI VERSION RUNNING BEFORE DOING THE UI.
 
+## Useful links
+
+- All the source is in, well, [src]}(src).
+- Jest tests are in [__tests__](__tests__)
+- Docs are in ... cough .. [docs](docs)
+- Brain dumps are disguised as [Research](research)
+- The nearest thing to offical feature notes are in [features](features)
+
+On Github you'll find:
+
+- The [repo](https://github.com/viewyonder/prompt-injectionator)
+- [Issues](https://github.com/viewyonder/prompt-injectionator/issues) are used to track work.
+- Trying to use a [Github Project](https://github.com/users/viewyonder/projects/3) to manage the project.
+
 ## Architecture Diagrams
 
 ### Class Diagram
