@@ -5,6 +5,10 @@
   },
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
+    "test:cli": "./scripts/test-cli.sh",
+    "test:cli-integration": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest --testPathPattern='cli-integration'",
+    "test:cli-e2e": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest --testPathPattern='cli-workflows'",
+    "test:cli-bash": "bats __tests__/bash/cli-bash.bats",
     "cli": "node src/cli/index.js",
     "example:secure-api": "node examples/secure-api-usage.js",
     "example:help": "node examples/secure-api-usage.js --help"
