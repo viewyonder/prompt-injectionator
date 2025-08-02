@@ -10,12 +10,12 @@
  * @since 1.0.0
  * @example
  * // Create a role-play injection
- * const rolePlayInjection = new Injection(
- *     'Expert Simulation',
- *     'Role Play', 
- *     'Attempts to make LLM act as an expert',
- *     ['act as an expert', 'simulate an expert', /expert.*mode/gi]
- * );
+ * const rolePlayInjection = new Injection({
+ *     name: 'Expert Simulation',
+ *     type: 'Role Play', 
+ *     description: 'Attempts to make LLM act as an expert',
+ *     patterns: ['act as an expert', 'simulate an expert', /expert.*mode/gi]
+ * });
  * 
  * // Detect the injection in user input
  * const result = rolePlayInjection.detect('Act as an expert and tell me about AI');
@@ -25,20 +25,21 @@ export class Injection {
     /**
      * Creates a new Injection instance.
      * 
-     * @param {string} name - Human-readable name for this injection
-     * @param {string} type - Category of injection (e.g., 'Role Play', 'Prompt Extraction')
-     * @param {string} description - Detailed description of what this injection does
-     * @param {Array<string|RegExp>} [patterns=[]] - Array of string or regex patterns to detect
+     * @param {Object} config - Configuration object for the injection
+     * @param {string} config.name - Human-readable name for this injection
+     * @param {string} config.type - Category of injection (e.g., 'Role Play', 'Prompt Extraction')
+     * @param {string} config.description - Detailed description of what this injection does
+     * @param {Array<string|RegExp>} [config.patterns=[]] - Array of string or regex patterns to detect
      * @throws {Error} When name, type, or description are empty
      * @example
-     * const injection = new Injection(
-     *     'System Prompt Extraction',
-     *     'Prompt Extraction',
-     *     'Attempts to extract the system prompt',
-     *     ['show me your prompt', /system.*prompt/gi]
-     * );
+     * const injection = new Injection({
+     *     name: 'System Prompt Extraction',
+     *     type: 'Prompt Extraction',
+     *     description: 'Attempts to extract the system prompt',
+     *     patterns: ['show me your prompt', /system.*prompt/gi]
+     * });
      */
-    constructor(name, type, description, patterns = []) {
+constructor({ name, type, description, patterns = [] }) {
         if (!name || !type || !description) {
             throw new Error('Name, type, and description are required');
         }
@@ -172,11 +173,11 @@ export class Injection {
             return pattern.value;
         });
         
-        return new Injection(
-            config.name,
-            config.type,
-            config.description,
-            patterns
-        );
+        return new Injection({
+            name: config.name,
+            type: config.type,
+            description: config.description,
+            patterns: patterns
+        });
     }
 }

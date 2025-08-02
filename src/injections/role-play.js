@@ -5,12 +5,12 @@ import { Injection } from '../core/Injection.js';
  */
 export class RolePlayInjection extends Injection {
     constructor() {
-        super(
-            'role-play',
-            'Role Play',
-            'Simulates an expert role or persona',
-            ['simulate an expert', 'act as an expert', /expert.*mode/gi]
-        );
+        super({
+            name: 'role-play',
+            type: 'Role Play',
+            description: 'Simulates an expert role or persona',
+            patterns: ['simulate an expert', 'act as an expert', /expert.*mode/gi]
+        });
     }
 }
 

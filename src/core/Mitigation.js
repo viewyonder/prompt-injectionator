@@ -8,7 +8,7 @@ const PIPELINE_OPTIONS = ['send', 'receive'];
  * Contains state (On/Off), mode (Active/Passive), and action handling
  */
 export class Mitigation {
-    constructor(name, description, sourceUrl, injections = [], state = 'On', mode = 'Active', action = 'abort', pipeline = 'send') {
+constructor({ name, description, sourceUrl, injections = [], state = 'On', mode = 'Active', action = 'abort', pipeline = 'send' }) {
         if (!PIPELINE_OPTIONS.includes(pipeline)) {
             throw new Error(`Invalid pipeline: ${pipeline}. Must be one of: ${PIPELINE_OPTIONS.join(', ')}`);
         }

@@ -5,11 +5,11 @@ import { Injection } from '../core/Injection.js';
  */
 export class ContextSwitchInjection extends Injection {
     constructor() {
-        super(
-            'context-switch',
-            'Context Switch',
-            'Frames malicious requests within hypothetical scenarios, stories, or plays',
-            [
+        super({
+            name: 'context-switch',
+            type: 'Context Switch',
+            description: 'Frames malicious requests within hypothetical scenarios, stories, or plays',
+            patterns: [
                 'write a scene for a play',
                 'hypothetically speaking',
                 'in a fictional scenario',
@@ -23,7 +23,7 @@ export class ContextSwitchInjection extends Injection {
                 /creative.*writing/gi,
                 /roleplay.*scenario/gi
             ]
-        );
+        });
     }
 }
 

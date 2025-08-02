@@ -6,11 +6,11 @@ import { Injection } from '../core/Injection.js';
  */
 export class SycophanticalGrandmaInjection extends Injection {
     constructor() {
-        super(
-            'sycophantic-grandma',
-            'Sycophantic Grandma',
-            'Uses emotional manipulation via fictional grandmother scenario to extract sensitive information',
-            [
+        super({
+            name: 'sycophantic-grandma',
+            type: 'Sycophantic Grandma',
+            description: 'Uses emotional manipulation via fictional grandmother scenario to extract sensitive information',
+            patterns: [
                 'my grandmother used to',
                 'in memory of my grandmother',
                 'bedtime story about',
@@ -21,7 +21,7 @@ export class SycophanticalGrandmaInjection extends Injection {
                 /grandma.*lullaby/gi,
                 /deceased.*grandmother/gi
             ]
-        );
+        });
     }
 }
 

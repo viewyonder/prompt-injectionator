@@ -5,11 +5,11 @@ import { Injection } from '../core/Injection.js';
  */
 export class TokenSmugglingInjection extends Injection {
     constructor() {
-        super(
-            'token-smuggling',
-            'Token Smuggling',
-            'Uses encoding techniques like Base64 to hide malicious instructions',
-            [
+        super({
+            name: 'token-smuggling',
+            type: 'Token Smuggling',
+            description: 'Uses encoding techniques like Base64 to hide malicious instructions',
+            patterns: [
                 'decode the following',
                 'base64 decode',
                 'decode this string',
@@ -22,7 +22,7 @@ export class TokenSmugglingInjection extends Injection {
                 /rot13.*decode/gi,
                 /decode.*rot13/gi
             ]
-        );
+        });
     }
 }
 

@@ -59,39 +59,39 @@ describe('Complete Injectionator System Tests', () => {
         const jailbreakInjection = new JailbreakDanInjection();
         
         // Create a send mitigation that uses the jailbreak injection
-        const sendMitigation = new Mitigation(
-            'Jailbreak Detection',
-            'Detects jailbreak attempts including ignore instructions',
-            null,
-            [jailbreakInjection],
-            'On',
-            'Active',
-            'abort',
-            'send'
-        );
+        const sendMitigation = new Mitigation({
+            name: 'Jailbreak Detection',
+            description: 'Detects jailbreak attempts including ignore instructions',
+            sourceUrl: null,
+            injections: [jailbreakInjection],
+            state: 'On',
+            mode: 'Active',
+            action: 'abort',
+            pipeline: 'send'
+        });
 
         // Create a basic receive mitigation (optional - for completeness)
-        const basicReceiveInjection = new Injection(
-            'response-sanitizer',
-            'Response Sanitizer',
-            'Prevents leaking of system information',
-            [
+        const basicReceiveInjection = new Injection({
+            name: 'response-sanitizer',
+            type: 'Response Sanitizer',
+            description: 'Prevents leaking of system information',
+            patterns: [
                 /system prompt/gi,
                 /ignore.*instructions/gi,
                 /internal.*settings/gi
             ]
-        );
+        });
 
-        const receiveMitigation = new Mitigation(
-            'Response Sanitization',
-            'Sanitizes responses to prevent information leakage',
-            null,
-            [basicReceiveInjection],
-            'On',
-            'Passive', // Use Passive mode so it doesn't block responses
-            'report',
-            'receive'
-        );
+        const receiveMitigation = new Mitigation({
+            name: 'Response Sanitization',
+            description: 'Sanitizes responses to prevent information leakage',
+            sourceUrl: null,
+            injections: [basicReceiveInjection],
+            state: 'On',
+            mode: 'Passive', // Use Passive mode so it doesn't block responses
+            action: 'report',
+            pipeline: 'receive'
+        });
 
         // Create chains
         const sendChain = new SendChain(

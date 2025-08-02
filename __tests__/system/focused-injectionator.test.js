@@ -21,28 +21,28 @@ describe('Focused Injectionator Tests', () => {
         const jailbreakInjection = new JailbreakDanInjection();
 
         // Create a SendChain with Jailbreak Mitigation
-        const sendMitigation = new Mitigation(
-            'Jailbreak Detection',
-            'Detects jailbreak attempts including ignore instructions',
-            null,
-            [jailbreakInjection],
-            'On',
-            'Active',
-            'abort',
-            'send'
-        );
+        const sendMitigation = new Mitigation({
+            name: 'Jailbreak Detection',
+            description: 'Detects jailbreak attempts including ignore instructions',
+            sourceUrl: null,
+            injections: [jailbreakInjection],
+            state: 'On',
+            mode: 'Active',
+            action: 'abort',
+            pipeline: 'send'
+        });
 
         // Provide an empty receive chain
-        const receiveMitigation = new Mitigation(
-            'NoOp',
-            'No operation mitigation for receive',
-            null,
-            [],
-            'Off',
-            'Passive',
-            'report',
-            'receive'
-        );
+        const receiveMitigation = new Mitigation({
+            name: 'NoOp',
+            description: 'No operation mitigation for receive',
+            sourceUrl: null,
+            injections: [],
+            state: 'Off',
+            mode: 'Passive',
+            action: 'report',
+            pipeline: 'receive'
+        });
 
         // Create Chains
         const sendChain = new SendChain('Security Send Pipeline', 'Jailbreak Detection', null, null, [sendMitigation]);
