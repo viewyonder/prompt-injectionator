@@ -1,3 +1,5 @@
+![Prompt Injectionator Header](images/prompt-injectionator-logo-1280x700.png "Prompt Injectionator")
+
 # Prompt Injectionator
 
 "Don't be a prompt injection hater!
