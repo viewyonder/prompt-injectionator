@@ -10,7 +10,9 @@ import { Injectionator } from '../src/core/Injectionator.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';
 import { Mitigation } from '../src/core/Mitigation.js';
 import { Injection } from '../src/core/Injection.js';
-import { LLMBackend, WebhookBackend, ChatBotBackend } from '../src/core/Backend.js';
+import { LLMBackend } from '../src/backends/LLMBackend.js';
+import { WebhookBackend } from '../src/backends/WebhookBackend.js';
+// Note: ChatBotBackend doesn't exist as a separate file, using LLMBackend for demo
 import logger, { Logger } from '../src/core/Logger.js';
 
 console.log('🔍 Prompt Injectionator - Logging Demonstration\n');
@@ -129,11 +131,11 @@ async function demonstrateLogging() {
     console.log(`🔗 Webhook result: ${webhookResult.success ? 'SUCCESS' : 'FAILED'}`);
     console.log(`📝 Response: ${webhookResult.finalResponse}\n`);
 
-    // Test with chatbot backend
-    const chatbotBackend = new ChatBotBackend('Assistant Bot', {
-        botId: 'demo-bot-456',
-        personality: 'helpful',
-        language: 'en'
+    // Test with another LLM backend (since ChatBotBackend doesn't exist as separate file)
+    const chatbotBackend = new LLMBackend('Assistant Bot Style', {
+        provider: 'mockup',
+        model: 'mock-assistant',
+        temperature: 0.8
     });
     
     injectionator.setLLMBackend(chatbotBackend);

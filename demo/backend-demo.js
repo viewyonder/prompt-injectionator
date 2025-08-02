@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-import { LLMBackend, WebhookBackend, ChatBotBackend } from '../src/core/Backend.js';
+import { LLMBackend } from '../src/backends/LLMBackend.js';
+import { WebhookBackend } from '../src/backends/WebhookBackend.js';
+// Note: ChatBotBackend doesn't exist as a separate file, using LLMBackend for demo
 import { Injectionator } from '../src/core/Injectionator.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';
 import { randomUUID } from 'crypto';
@@ -80,13 +82,13 @@ async function runDemo() {
         });
         await demonstrateBackend('Webhook', webhookBackend, testPrompt);
         
-        // Demo 3: ChatBot Backend
-        const chatBotBackend = new ChatBotBackend('Demo ChatBot', {
-            botId: 'demo-assistant-v1',
-            personality: 'helpful',
-            language: 'en'
+        // Demo 3: Another LLM Backend (since ChatBotBackend doesn't exist as separate file)
+        const anotherLlmBackend = new LLMBackend('Demo ChatBot Style', {
+            provider: 'mockup',
+            model: 'mock-chatbot',
+            temperature: 0.9
         });
-        await demonstrateBackend('ChatBot', chatBotBackend, testPrompt);
+        await demonstrateBackend('ChatBot-Style LLM', anotherLlmBackend, testPrompt);
         
         // Demo 4: Backend validation
         console.log('\n🔍 Backend Validation Demo');
@@ -95,7 +97,7 @@ async function runDemo() {
         const backends = [
             { name: 'LLM', backend: llmBackend },
             { name: 'Webhook', backend: webhookBackend },
-            { name: 'ChatBot', backend: chatBotBackend }
+            { name: 'ChatBot-Style LLM', backend: anotherLlmBackend }
         ];
         
         backends.forEach(({ name, backend }) => {
