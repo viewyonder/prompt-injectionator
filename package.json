@@ -5,6 +5,7 @@
   },
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
+    "cli": "node src/cli/index.js",
     "example:secure-api": "node examples/secure-api-usage.js",
     "example:help": "node examples/secure-api-usage.js --help"
   },

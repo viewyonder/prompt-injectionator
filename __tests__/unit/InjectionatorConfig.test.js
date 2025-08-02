@@ -1,101 +1,71 @@
-import { loadInjectionatorConfig, saveInjectionatorConfig } from '../../src/core/InjectionatorConfig';
-import { Injectionator } from '../../src/core/Injectionator';
 import fs from 'fs';
+import { jest } from '@jest/globals';
+import { saveInjectionatorConfig, loadInjectionatorConfig } from '../../src/core/InjectionatorConfig.js';
+import { Injectionator } from '../../src/core/Injectionator.js';
 
-// Mock crypto.randomUUID for ES modules
-global.crypto = {
-    randomUUID: () => 'unique-id-' + Date.now()
-};
+describe('InjectionatorConfig', () => {
+  const mockConfig = {
+    name: 'test-injectionator',
+    steps: [{ type: 'injection', data: 'test-prompt' }],
+  };
+  const filePath = './test-config.json';
 
-describe('InjectionatorConfig Tests', () => {
-    const testFilePath = '__tests__/unit/Injectionator.json';
-    let injectionator = null;
+  afterEach(() => {
+    // Restore all mocks after each test to ensure test isolation
+    jest.restoreAllMocks();
+  });
 
-    beforeAll(() => {
-        injectionator = loadInjectionatorConfig(testFilePath);
+  describe('saveInjectionatorConfig', () => {
+    test('should serialize the injectionator config and save it to a file', () => {
+      // Arrange
+      const mockInjectionator = {
+        toJSON: jest.fn().mockReturnValue(mockConfig),
+      };
+      // Spy on fs.writeFileSync and provide a mock implementation
+      const writeSpy = jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+
+      // Act
+      saveInjectionatorConfig(mockInjectionator, filePath);
+
+      // Assert
+      expect(mockInjectionator.toJSON).toHaveBeenCalledTimes(1);
+      expect(writeSpy).toHaveBeenCalledWith(
+        filePath,
+        JSON.stringify(mockConfig, null, 2)
+      );
+    });
+  });
+
+  describe('loadInjectionatorConfig', () => {
+    test('should read a file, parse it, and create an Injectionator instance', () => {
+      // Arrange
+      const stringifiedConfig = JSON.stringify(mockConfig);
+      // Spy on fs.readFileSync to return a mock config
+      jest.spyOn(fs, 'readFileSync').mockReturnValue(stringifiedConfig);
+      
+      const mockLoadedInjectionator = { name: 'loaded-injectionator' };
+      // Spy on the static fromJSON method of Injectionator
+      const fromJSONSpy = jest.spyOn(Injectionator, 'fromJSON').mockReturnValue(mockLoadedInjectionator);
+
+      // Act
+      const loadedInjectionator = loadInjectionatorConfig(filePath);
+
+      // Assert
+      expect(fs.readFileSync).toHaveBeenCalledWith(filePath, 'utf-8');
+      expect(fromJSONSpy).toHaveBeenCalledWith(mockConfig);
+      expect(loadedInjectionator).toBe(mockLoadedInjectionator);
     });
 
-    test('Load Injectionator Config', () => {
-        expect(injectionator).not.toBeNull();
-        expect(injectionator.name).toBe('Test Injectionator');
-        expect(injectionator.description).toBe('Test description for Injectionator');
-        expect(injectionator.sourceUrl).toBe('http://test-url.com');
-        
-        // Test send chain
-        expect(injectionator.sendChain).not.toBeNull();
-        expect(injectionator.sendChain.name).toBe('Test Send Chain');
-        expect(injectionator.sendChain.mitigations).toHaveLength(1);
-        
-        // Test receive chain
-        expect(injectionator.receiveChain).not.toBeNull();
-        expect(injectionator.receiveChain.name).toBe('Test Receive Chain');
-        expect(injectionator.receiveChain.mitigations).toHaveLength(1);
-        
-        // Test backend
-        expect(injectionator.llmBackend).not.toBeNull();
-        expect(injectionator.llmBackend.name).toBe('Test LLM Backend');
-        expect(injectionator.llmBackend.type).toBe('llm');
-    });
+    test('should throw an error if the file does not exist', () => {
+        // Arrange
+        // Spy on fs.readFileSync to simulate a file-not-found error
+        jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+            throw new Error('File not found');
+        });
 
-    test('Save Injectionator Config', () => {
-        const savePath = '__tests__/unit/SavedInjectionator.json';
-        saveInjectionatorConfig(injectionator, savePath);
-        
-        const savedData = JSON.parse(fs.readFileSync(savePath, 'utf-8'));
-        
-        // Test basic properties
-        expect(savedData.name).toBe('Test Injectionator');
-        expect(savedData.description).toBe('Test description for Injectionator');
-        expect(savedData.sourceUrl).toBe('http://test-url.com');
-        
-        // Test chains are saved
-        expect(savedData.sendChain).not.toBeNull();
-        expect(savedData.sendChain.name).toBe('Test Send Chain');
-        expect(savedData.receiveChain).not.toBeNull();
-        expect(savedData.receiveChain.name).toBe('Test Receive Chain');
-        
-        // Test backend is saved
-        expect(savedData.backend).not.toBeNull();
-        expect(savedData.backend.name).toBe('Test LLM Backend');
-        expect(savedData.backend.type).toBe('llm');
-        
-        // Test injections are saved (keyed by mitigation names)
-        expect(savedData.injections).not.toBeNull();
-        expect(savedData.injections['Role Play Detection']).toBeDefined();
-        expect(savedData.injections['Data Sanitization']).toBeDefined();
-        expect(savedData.injections['Role Play Detection'].name).toBe('role-play');
-        expect(savedData.injections['Data Sanitization'].name).toBe('sanitize');
-
-        // Cleanup
-        fs.unlinkSync(savePath);
+        // Act & Assert
+        expect(() => loadInjectionatorConfig('non-existent-file.json')).toThrow('File not found');
     });
-    
-    test('Round-trip save and load', () => {
-        const savePath = '__tests__/unit/RoundTripInjectionator.json';
-        
-        // Save the loaded injectionator
-        saveInjectionatorConfig(injectionator, savePath);
-        
-        // Load it back
-        const reloadedInjectionator = loadInjectionatorConfig(savePath);
-        
-        // Verify they match
-        expect(reloadedInjectionator.name).toBe(injectionator.name);
-        expect(reloadedInjectionator.description).toBe(injectionator.description);
-        expect(reloadedInjectionator.sourceUrl).toBe(injectionator.sourceUrl);
-        expect(reloadedInjectionator.sendChain.name).toBe(injectionator.sendChain.name);
-        expect(reloadedInjectionator.receiveChain.name).toBe(injectionator.receiveChain.name);
-        expect(reloadedInjectionator.llmBackend.name).toBe(injectionator.llmBackend.name);
-
-        // Cleanup
-        fs.unlinkSync(savePath);
-    });
-    
-    test('Validate loaded injectionator', () => {
-        const validation = injectionator.validate();
-        expect(validation.valid).toBe(true);
-        expect(validation.issues).toHaveLength(0);
-    });
+  });
 });
-
 

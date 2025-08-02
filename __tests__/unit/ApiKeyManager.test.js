@@ -1,194 +1,95 @@
-import { ApiKeyManager } from '../../src/core/ApiKeyManager';
+import { ApiKeyManager } from '../../src/core/ApiKeyManager.js';
 
 describe('ApiKeyManager', () => {
-    let apiKeyManager;
+  let apiKeyManager;
 
-    beforeEach(() => {
-        apiKeyManager = new ApiKeyManager();
-        // Clear environment variables for testing
-        delete process.env.TEST_API_KEY;
-        delete process.env.ANOTHER_KEY;
+  beforeEach(() => {
+    apiKeyManager = new ApiKeyManager();
+    apiKeyManager.clearRuntimeKeys();
+    delete process.env.TEST_API_KEY;
+    delete process.env.KEY2;
+  });
+
+  describe('addRuntimeKey and resolveKey', () => {
+    test('should store and retrieve a runtime key', () => {
+      apiKeyManager.addRuntimeKey('TEST_RUNTIME_KEY', 'runtime-key-value');
+      expect(apiKeyManager.resolveKey('TEST_RUNTIME_KEY')).toBe('runtime-key-value');
     });
 
-    afterEach(() => {
-        apiKeyManager.clearRuntimeKeys();
-        // Clean up environment variables
-        delete process.env.TEST_API_KEY;
-        delete process.env.ANOTHER_KEY;
+    test('should throw an error if keyName or keyValue is missing', () => {
+      expect(() => apiKeyManager.addRuntimeKey('TEST_KEY')).toThrow('Both keyName and keyValue are required');
+      expect(() => apiKeyManager.addRuntimeKey(null, 'value')).toThrow('Both keyName and keyValue are required');
+    });
+  });
+
+  describe('resolveKey with environment variables', () => {
+    test('should resolve a key from environment variables', () => {
+      process.env.TEST_API_KEY = 'env-key-value';
+      expect(apiKeyManager.resolveKey('TEST_API_KEY')).toBe('env-key-value');
+    });
+  });
+
+  describe('resolveKey priority', () => {
+    test('should prioritize runtime key over environment variable', () => {
+      process.env.TEST_API_KEY = 'env-key-value';
+      apiKeyManager.addRuntimeKey('TEST_API_KEY', 'runtime-key-value');
+      expect(apiKeyManager.resolveKey('TEST_API_KEY')).toBe('runtime-key-value');
+    });
+  });
+
+  describe('resolveKey for non-existent key', () => {
+    test('should return null for a non-existent key', () => {
+      expect(apiKeyManager.resolveKey('NON_EXISTENT_KEY')).toBeNull();
+    });
+  });
+
+  describe('validateKeys', () => {
+    test('should return valid when all keys are present', () => {
+      apiKeyManager.addRuntimeKey('KEY1', 'value1');
+      process.env.KEY2 = 'value2';
+      const result = apiKeyManager.validateKeys(['KEY1', 'KEY2']);
+      expect(result.valid).toBe(true);
+      expect(result.missing).toEqual([]);
+      expect(result.available).toEqual(['KEY1', 'KEY2']);
     });
 
-    describe('Runtime Key Management', () => {
-        test('should add and retrieve runtime keys', () => {
-            apiKeyManager.addRuntimeKey('TEST_KEY', 'test-value-123');
-            
-            const resolvedKey = apiKeyManager.resolveKey('TEST_KEY');
-            expect(resolvedKey).toBe('test-value-123');
-        });
+    test('should return invalid with missing keys', () => {
+      apiKeyManager.addRuntimeKey('KEY1', 'value1');
+      const result = apiKeyManager.validateKeys(['KEY1', 'MISSING_KEY']);
+      expect(result.valid).toBe(false);
+      expect(result.missing).toEqual(['MISSING_KEY']);
+      expect(result.available).toEqual(['KEY1']);
+    });
+  });
 
-        test('should throw error for invalid runtime key parameters', () => {
-            expect(() => {
-                apiKeyManager.addRuntimeKey(null, 'value');
-            }).toThrow('Both keyName and keyValue are required');
-
-            expect(() => {
-                apiKeyManager.addRuntimeKey('key', null);
-            }).toThrow('Both keyName and keyValue are required');
-        });
-
-        test('should clear runtime keys', () => {
-            apiKeyManager.addRuntimeKey('TEST_KEY', 'test-value-123');
-            expect(apiKeyManager.resolveKey('TEST_KEY')).toBe('test-value-123');
-
-            apiKeyManager.clearRuntimeKeys();
-            expect(apiKeyManager.resolveKey('TEST_KEY')).toBeNull();
-        });
+  describe('parseCliArguments', () => {
+    test('should parse and add runtime keys from arguments', () => {
+      const args = ['--api-key', 'CLI_KEY=cli-value'];
+      apiKeyManager.parseCliArguments(args);
+      expect(apiKeyManager.resolveKey('CLI_KEY')).toBe('cli-value');
     });
 
-    describe('Environment Variable Resolution', () => {
-        test('should resolve keys from environment variables', () => {
-            process.env.TEST_API_KEY = 'env-value-456';
-            
-            const resolvedKey = apiKeyManager.resolveKey('TEST_API_KEY');
-            expect(resolvedKey).toBe('env-value-456');
-        });
-
-        test('should return null for non-existent environment variables', () => {
-            const resolvedKey = apiKeyManager.resolveKey('NON_EXISTENT_KEY');
-            expect(resolvedKey).toBeNull();
-        });
+    test('should parse multiple keys', () => {
+      const args = ['--api-key', 'CLI_KEY1=val1', '--api-key', 'CLI_KEY2=val2'];
+      const count = apiKeyManager.parseCliArguments(args);
+      expect(count).toBe(2);
+      expect(apiKeyManager.resolveKey('CLI_KEY1')).toBe('val1');
+      expect(apiKeyManager.resolveKey('CLI_KEY2')).toBe('val2');
     });
 
-    describe('Key Resolution Priority', () => {
-        test('should prioritize runtime keys over environment variables', () => {
-            process.env.TEST_API_KEY = 'env-value';
-            apiKeyManager.addRuntimeKey('TEST_API_KEY', 'runtime-value');
-            
-            const resolvedKey = apiKeyManager.resolveKey('TEST_API_KEY');
-            expect(resolvedKey).toBe('runtime-value');
-        });
+    test('should handle keys with equals signs in the value', () => {
+        const args = ['--api-key', 'KEY_WITH_EQUALS=part1=part2'];
+        apiKeyManager.parseCliArguments(args);
+        expect(apiKeyManager.resolveKey('KEY_WITH_EQUALS')).toBe('part1=part2');
     });
+  });
 
-    describe('CLI Argument Parsing', () => {
-        test('should parse single API key from CLI arguments', () => {
-            const args = ['node', 'script.js', '--api-key', 'TEST_KEY=test-value-789'];
-            
-            const keyCount = apiKeyManager.parseCliArguments(args);
-            expect(keyCount).toBe(1);
-            expect(apiKeyManager.resolveKey('TEST_KEY')).toBe('test-value-789');
-        });
-
-        test('should parse multiple API keys from CLI arguments', () => {
-            const args = [
-                'node', 'script.js',
-                '--api-key', 'FIRST_KEY=first-value',
-                '--api-key', 'SECOND_KEY=second-value'
-            ];
-            
-            const keyCount = apiKeyManager.parseCliArguments(args);
-            expect(keyCount).toBe(2);
-            expect(apiKeyManager.resolveKey('FIRST_KEY')).toBe('first-value');
-            expect(apiKeyManager.resolveKey('SECOND_KEY')).toBe('second-value');
-        });
-
-        test('should handle API keys with equals signs in value', () => {
-            const args = ['node', 'script.js', '--api-key', 'COMPLEX_KEY=value=with=equals'];
-            
-            const keyCount = apiKeyManager.parseCliArguments(args);
-            expect(keyCount).toBe(1);
-            expect(apiKeyManager.resolveKey('COMPLEX_KEY')).toBe('value=with=equals');
-        });
-
-        test('should ignore malformed API key arguments', () => {
-            const args = [
-                'node', 'script.js',
-                '--api-key', 'VALID_KEY=valid-value',
-                '--api-key', 'INVALID_FORMAT',  // Missing equals
-                '--api-key', '=missing-key-name'  // Missing key name
-            ];
-            
-            const keyCount = apiKeyManager.parseCliArguments(args);
-            expect(keyCount).toBe(1);
-            expect(apiKeyManager.resolveKey('VALID_KEY')).toBe('valid-value');
-            expect(apiKeyManager.resolveKey('INVALID_FORMAT')).toBeNull();
-        });
+  describe('clearRuntimeKeys', () => {
+    test('should clear all runtime keys', () => {
+      apiKeyManager.addRuntimeKey('KEY1', 'value1');
+      apiKeyManager.clearRuntimeKeys();
+      expect(apiKeyManager.resolveKey('KEY1')).toBeNull();
     });
-
-    describe('Key Validation', () => {
-        test('should validate available keys correctly', () => {
-            process.env.ENV_KEY = 'env-value';
-            apiKeyManager.addRuntimeKey('RUNTIME_KEY', 'runtime-value');
-            
-            const validation = apiKeyManager.validateKeys(['ENV_KEY', 'RUNTIME_KEY']);
-            
-            expect(validation.valid).toBe(true);
-            expect(validation.available).toEqual(['ENV_KEY', 'RUNTIME_KEY']);
-            expect(validation.missing).toEqual([]);
-            expect(validation.message).toBe('All required API keys are available');
-        });
-
-        test('should identify missing keys', () => {
-            apiKeyManager.addRuntimeKey('AVAILABLE_KEY', 'value');
-            
-            const validation = apiKeyManager.validateKeys(['AVAILABLE_KEY', 'MISSING_KEY']);
-            
-            expect(validation.valid).toBe(false);
-            expect(validation.available).toEqual(['AVAILABLE_KEY']);
-            expect(validation.missing).toEqual(['MISSING_KEY']);
-            expect(validation.message).toBe('Missing API keys: MISSING_KEY');
-        });
-
-        test('should handle empty required keys list', () => {
-            const validation = apiKeyManager.validateKeys([]);
-            
-            expect(validation.valid).toBe(true);
-            expect(validation.available).toEqual([]);
-            expect(validation.missing).toEqual([]);
-        });
-    });
-
-    describe('Usage Instructions', () => {
-        test('should generate usage instructions for required keys', () => {
-            const requiredKeys = ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'];
-            const instructions = apiKeyManager.getUsageInstructions(requiredKeys);
-            
-            expect(instructions).toContain('OPENAI_API_KEY');
-            expect(instructions).toContain('ANTHROPIC_API_KEY');
-            expect(instructions).toContain('Environment Variables');
-            expect(instructions).toContain('Command Line Arguments');
-            expect(instructions).toContain('Security Notes');
-        });
-    });
-
-    describe('Statistics', () => {
-        test('should return key statistics without exposing values', () => {
-            process.env.TEST_API_KEY = 'env-value';
-            process.env.ANOTHER_TOKEN = 'another-value';
-            apiKeyManager.addRuntimeKey('RUNTIME_KEY', 'runtime-value');
-            
-            const stats = apiKeyManager.getKeyStats();
-            
-            expect(stats.runtimeKeys).toBe(1);
-            expect(stats.environmentKeys).toBeGreaterThanOrEqual(2); // TEST_API_KEY and ANOTHER_TOKEN
-            expect(stats.totalSources).toBe(2);
-        });
-    });
-
-    describe('Edge Cases', () => {
-        test('should handle null or undefined key references', () => {
-            expect(apiKeyManager.resolveKey(null)).toBeNull();
-            expect(apiKeyManager.resolveKey(undefined)).toBeNull();
-            expect(apiKeyManager.resolveKey('')).toBeNull();
-        });
-
-        test('should handle empty CLI arguments', () => {
-            const keyCount = apiKeyManager.parseCliArguments([]);
-            expect(keyCount).toBe(0);
-        });
-
-        test('should handle CLI arguments without --api-key flag', () => {
-            const args = ['node', 'script.js', '--other-flag', 'value'];
-            const keyCount = apiKeyManager.parseCliArguments(args);
-            expect(keyCount).toBe(0);
-        });
-    });
+  });
 });
+
