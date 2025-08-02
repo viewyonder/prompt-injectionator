@@ -16,6 +16,13 @@ import boxen from 'boxen';
 import { table } from 'table';
 import { CLISession } from './CLISession.js';
 import { ConfigurationManager } from './ConfigurationManager.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class PromptInjectionatorCLI {
     constructor() {
@@ -60,22 +67,59 @@ export class PromptInjectionatorCLI {
     }
 
     /**
-     * Display welcome message and session info
+     * Display welcome message with ASCII banner and session info
      */
     displayWelcome() {
-        const welcomeMessage = boxen(
-            chalk.cyan.bold('🛡️  Prompt Injectionator CLI') + '\n\n' +
+        // Clear screen for clean startup
+        console.clear();
+        
+        // Try to load and display ASCII banner
+        this.displayBanner();
+        
+        // Display session info in a box
+        const sessionInfo = boxen(
             chalk.white('Interactive CLI for managing prompt injection testing\n') +
-            chalk.gray(`Session ID: ${this.session.id.substring(0, 8)}...`),
+            chalk.gray(`Session ID: ${this.session.id.substring(0, 8)}... | Started: ${new Date().toLocaleTimeString()}`),
             {
                 padding: 1,
-                margin: 1,
+                margin: { top: 1, bottom: 1, left: 2, right: 2 },
                 borderStyle: 'round',
-                borderColor: 'cyan'
+                borderColor: 'cyan',
+                title: chalk.cyan.bold('🛡️  Welcome to Prompt Injectionator CLI'),
+                titleAlignment: 'center'
             }
         );
         
-        console.log(welcomeMessage);
+        console.log(sessionInfo);
+    }
+
+    /**
+     * Load and display ASCII art banner
+     */
+    displayBanner() {
+        try {
+            const bannerPath = path.join(__dirname, 'assets', 'banner.txt');
+            
+            if (fs.existsSync(bannerPath)) {
+                const banner = fs.readFileSync(bannerPath, 'utf-8');
+                // Display banner with cyan color
+                console.log(chalk.cyan(banner));
+            } else {
+                // Fallback to simple text banner if file not found
+                console.log(chalk.cyan.bold(`
+
+🛡️   PROMPT INJECTIONATOR   🛡️`));
+                console.log(chalk.cyan('Don\'t be a prompt injection hater! -- Get Prompt Injectionator!'));
+                console.log(chalk.gray('Built by meatbags.\n'));
+            }
+        } catch (error) {
+            // Silently fall back to simple banner if there's any error
+            console.log(chalk.cyan.bold(`
+
+🛡️   PROMPT INJECTIONATOR   🛡️`));
+            console.log(chalk.cyan('Don\'t be a prompt injection hater! -- Get Prompt Injectionator!'));
+            console.log(chalk.gray('Built by meatbags.\n'));
+        }
     }
 
     /**

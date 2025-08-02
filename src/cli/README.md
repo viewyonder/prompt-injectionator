@@ -370,9 +370,163 @@ The CLI integrates with existing core classes:
 - Maintains compatibility with JSON configuration format
 - Extends existing logging infrastructure
 
+## Testing
+
+### Running CLI Tests
+
+```bash
+# Run all CLI tests
+npm run test:cli
+
+# Run individual test suites
+npm run test:cli-integration  # Integration tests
+npm run test:cli-e2e          # End-to-end workflow tests
+npm run test:cli-bash         # Bash launcher tests
+
+# Run specific test file
+npm test -- __tests__/unit/CLISession.test.js
+```
+
+### Test Coverage
+
+The CLI test suite includes:
+
+- **Unit Tests**: Individual component testing (CLISession, ConfigurationManager)
+- **Integration Tests**: Feature-level testing with mocked user interactions
+- **End-to-End Tests**: Complete workflow testing from start to finish
+- **Bash Tests**: Launcher script testing using BATS framework
+
+### Manual Testing Checklist
+
+- [ ] CLI starts without errors
+- [ ] All menu options are accessible
+- [ ] Configuration creation works from templates and blank
+- [ ] File loading/saving operates correctly
+- [ ] Prompt execution shows proper results
+- [ ] Mitigation management functions work
+- [ ] Session data is tracked accurately
+- [ ] Error handling provides clear feedback
+- [ ] Exit cleanup works properly
+
+## Troubleshooting
+
+### Common Issues
+
+**CLI Won't Start**
+```bash
+# Check Node.js version (requires Node 14+)
+node --version
+
+# Install dependencies
+npm install
+
+# Check if CLI entry point exists
+ls -la src/cli/index.js
+```
+
+**"No configurations found" Error**
+```bash
+# Create configs directory
+mkdir -p configs
+
+# Check directory permissions
+ls -la configs/
+```
+
+**Execution Errors**
+- Ensure injectionator has both send and receive chains configured
+- Verify LLM backend is properly set up
+- Check that injection patterns are defined in the configuration
+
+**Mitigation Management Issues**
+- Ensure injections are defined before attaching mitigations
+- Verify chain configuration exists
+- Check that mitigation names are unique within a chain
+
+### Debug Mode
+
+For detailed debugging, you can:
+
+1. **Enable Verbose Logging**
+   ```javascript
+   // In src/cli/index.js, add:
+   process.env.DEBUG = 'prompt-injectionator:*';
+   ```
+
+2. **Inspect Session Data**
+   ```javascript
+   // Access session data in CLI:
+   console.log(this.session.exportSession());
+   ```
+
+3. **Check Configuration Validation**
+   ```javascript
+   // Validate before operations:
+   const validation = injectionator.validate();
+   console.log(validation);
+   ```
+
+### Performance Considerations
+
+- **Large Configuration Files**: Loading may take longer with many mitigations
+- **History Size**: Session history is limited to 100 entries by default
+- **Log Size**: Session logs are limited to 500 entries by default
+- **File Operations**: Configuration saving is synchronous and may block on large files
+
 ## Error Handling
 
-- Graceful error recovery with user-friendly messages
-- Validation at input level with inquirer
-- Comprehensive error logging
-- Option to continue or exit after errors
+### Graceful Recovery
+- User-friendly error messages with context
+- Option to continue or exit after recoverable errors
+- Automatic session cleanup on unexpected termination
+- Validation at input level prevents invalid operations
+
+### Error Categories
+
+**Configuration Errors**
+- Invalid JSON format in configuration files
+- Missing required fields in injectionator setup
+- Incompatible mitigation-chain combinations
+
+**Runtime Errors**
+- Network failures during LLM backend calls
+- File system permission issues
+- Memory constraints with large session data
+
+**User Input Errors**
+- Empty required fields
+- Invalid file paths
+- Unsupported characters in names
+
+### Logging
+
+All errors are logged with:
+- Timestamp and session ID
+- Error type and severity level
+- Stack trace for debugging
+- User action context
+- Suggested resolution steps
+
+## Contributing
+
+### Feature Requests
+
+1. Check existing issues for similar requests
+2. Create detailed issue with use case description
+3. Include mockups or workflow examples
+4. Tag with `enhancement` and `cli` labels
+
+### Bug Reports
+
+1. Include CLI version and environment details
+2. Provide step-by-step reproduction instructions
+3. Attach relevant logs and error messages
+4. Specify expected vs. actual behavior
+
+### Pull Requests
+
+1. Follow existing code style and patterns
+2. Include comprehensive tests for new features
+3. Update documentation and README
+4. Ensure all tests pass before submission
+5. Add changelog entry for significant changes
