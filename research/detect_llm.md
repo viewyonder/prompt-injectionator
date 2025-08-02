@@ -2,11 +2,11 @@
 
 *QUESTION*
 
-The Prompt Injectionator can detect a prompt injection before and after a prompt is sent to an LLM. One of the mitigations is using another Detect LLM to detect an injection in the prompt and its output -- but how to ensure this Guard LLM isn't affected by the prompt injection?
+The Prompt Injectionator can detect a prompt injection before and after a prompt is sent to an LLM. One of the mitigations is using another "Detection LLM" to detect an injection in the prompt and its output -- but how to ensure this Guard LLM isn't affected by the prompt injection?
 
 *SOLUTION*
 
-To ensure your Guard LLM in the Prompt Injectionator app isn’t affected by prompt injections, you need to design its architecture and operation to minimize vulnerabilities. Prompt injection attacks typically exploit an LLM’s tendency to follow instructions embedded in user inputs, so the Guard LLM must be insulated from such manipulations. Here are strategies to achieve this:
+To ensure the Detection LLM in the Prompt Injectionator app isn’t affected by prompt injections, we need to design its architecture and operation to minimize vulnerabilities. Prompt injection attacks typically exploit an LLM’s tendency to follow instructions embedded in user inputs, so the Detection LLM must be insulated from such manipulations.
 
 *SUMMARY*
 
