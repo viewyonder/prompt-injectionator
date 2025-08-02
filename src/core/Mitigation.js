@@ -1,11 +1,17 @@
 import logger from './Logger.js';
 
+// Valid pipeline options
+const PIPELINE_OPTIONS = ['send', 'receive'];
+
 /**
  * Mitigation class wraps one or more injection objects and decides how to handle detection results.
  * Contains state (On/Off), mode (Active/Passive), and action handling
  */
 export class Mitigation {
-    constructor(name, description, sourceUrl, injections = [], state = 'On', mode = 'Active', action = 'abort') {
+    constructor(name, description, sourceUrl, injections = [], state = 'On', mode = 'Active', action = 'abort', pipeline = 'send') {
+        if (!PIPELINE_OPTIONS.includes(pipeline)) {
+            throw new Error(`Invalid pipeline: ${pipeline}. Must be one of: ${PIPELINE_OPTIONS.join(', ')}`);
+        }
         this.name = name;
         this.description = description;
         this.sourceUrl = sourceUrl; // GitHub repo URL or source reference
@@ -13,6 +19,7 @@ export class Mitigation {
         this.mode = mode; // 'Active' or 'Passive'
         this.injections = injections; // Array of Injection objects
         this.action = action; // 'abort', 'flag', 'silent'
+        this.pipeline = pipeline;
         this.id = crypto.randomUUID();
         
         // Initialize logger with context
@@ -149,6 +156,7 @@ export class Mitigation {
             id: this.id,
             name: this.name,
             mode: this.mode,
+            pipeline: this.pipeline,
             description: this.description,
             injections: this.injections.map(inj => inj.getDetails())
         };

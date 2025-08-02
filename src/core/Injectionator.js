@@ -322,11 +322,17 @@ export class Injectionator {
         );
 
         // Construct mitigations for chains
-        const constructMitigations = (chainConfig) =>
-            chainConfig.mitigations.map((mitConfig) => ({
-                ...mitConfig,
-                injection: injections[mitConfig.injection]
-            }));
+        const constructMitigations = (chainConfig, pipelineType) =>
+            chainConfig.mitigations.map((mitConfig) => new Mitigation(
+                mitConfig.name,
+                mitConfig.description,
+                null, // sourceUrl
+                [injections[mitConfig.injection]], // injections array  
+                'On', // default state
+                'Active', // default mode
+                'abort', // default action
+                pipelineType // pipeline type
+            ));
 
         // Construct send chain
         const sendChain = new SendChain(
@@ -334,7 +340,7 @@ export class Injectionator {
             config.sendChain.description,
             config.sendChain.sourceUrl,
             null, // backend will be set separately
-            constructMitigations(config.sendChain)
+            constructMitigations(config.sendChain, 'send')
         );
 
         // Construct receive chain
@@ -343,7 +349,7 @@ export class Injectionator {
             config.receiveChain.description,
             config.receiveChain.sourceUrl,
             config.receiveChain.outputTarget,
-            constructMitigations(config.receiveChain)
+            constructMitigations(config.receiveChain, 'receive')
         );
 
         // Construct backend
@@ -385,9 +391,13 @@ export class Injectionator {
 
         const processMitigations = (mitigations) => {
             mitigations.forEach((mitigation) => {
-                const { name, injection } = mitigation;
-                if (injection && !uniqueInjections[name]) {
-                    uniqueInjections[name] = injection.toJSON();
+                const { name, injections } = mitigation;
+                if (injections && injections.length > 0) {
+                    injections.forEach((injection) => {
+                        if (injection && !uniqueInjections[name]) {
+                            uniqueInjections[name] = injection.toJSON();
+                        }
+                    });
                 }
             });
         };

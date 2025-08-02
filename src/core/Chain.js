@@ -76,6 +76,7 @@ export class Chain {
      * @param {Mitigation} mitigation - Mitigation to add
      */
     addMitigation(mitigation) {
+        // Default behavior - subclasses can override for validation
         this.mitigations.push(mitigation);
     }
 
@@ -120,7 +121,7 @@ export class Chain {
             mitigations: this.mitigations.map(mit => ({
                 name: mit.name,
                 description: mit.description,
-                injection: mit.injection.name // Reference to injection by name
+                injection: mit.injections[0]?.name // Reference to first injection by name
             }))
         };
     }
@@ -132,6 +133,13 @@ export class Chain {
  */
 export class SendChain extends Chain {
     constructor(name, description, sourceUrl, backend, mitigations = []) {
+        // Validate mitigations before calling super
+        mitigations.forEach(mitigation => {
+            if (mitigation.pipeline !== 'send') {
+                throw new Error(`Cannot create SendChain with mitigation '${mitigation.name}' that has pipeline '${mitigation.pipeline}'. Expected 'send'.`);
+            }
+        });
+        
         super(name || 'Send Pipeline', mitigations);
         this.description = description || 'Processes user prompts before sending to LLM';
         this.sourceUrl = sourceUrl || null; // GitHub repo URL or source reference
@@ -166,6 +174,22 @@ export class SendChain extends Chain {
      */
     getBackend() {
         return this.backend;
+    }
+
+    /**
+     * Add a mitigation to the send chain with pipeline validation
+     * @param {Mitigation} mitigation - Mitigation to add
+     */
+    addMitigation(mitigation) {
+        if (mitigation.pipeline !== 'send') {
+            throw new Error(`Cannot add mitigation with pipeline '${mitigation.pipeline}' to send chain. Expected 'send'.`);
+        }
+        this.logger.info('Adding mitigation to send chain', {
+            mitigationName: mitigation.name,
+            pipeline: mitigation.pipeline,
+            event: 'mitigation_added'
+        });
+        super.addMitigation(mitigation);
     }
 
     /**
@@ -205,6 +229,13 @@ export class SendChain extends Chain {
  */
 export class ReceiveChain extends Chain {
     constructor(name, description, sourceUrl, outputTarget, mitigations = []) {
+        // Validate mitigations before calling super
+        mitigations.forEach(mitigation => {
+            if (mitigation.pipeline !== 'receive') {
+                throw new Error(`Cannot create ReceiveChain with mitigation '${mitigation.name}' that has pipeline '${mitigation.pipeline}'. Expected 'receive'.`);
+            }
+        });
+        
         super(name || 'Receive Pipeline', mitigations);
         this.description = description || 'Processes LLM responses before returning to user';
         this.sourceUrl = sourceUrl || null; // GitHub repo URL or source reference
@@ -239,6 +270,22 @@ export class ReceiveChain extends Chain {
      */
     getOutputTarget() {
         return this.outputTarget;
+    }
+
+    /**
+     * Add a mitigation to the receive chain with pipeline validation
+     * @param {Mitigation} mitigation - Mitigation to add
+     */
+    addMitigation(mitigation) {
+        if (mitigation.pipeline !== 'receive') {
+            throw new Error(`Cannot add mitigation with pipeline '${mitigation.pipeline}' to receive chain. Expected 'receive'.`);
+        }
+        this.logger.info('Adding mitigation to receive chain', {
+            mitigationName: mitigation.name,
+            pipeline: mitigation.pipeline,
+            event: 'mitigation_added'
+        });
+        super.addMitigation(mitigation);
     }
 
     /**

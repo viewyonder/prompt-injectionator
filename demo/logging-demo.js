@@ -57,7 +57,9 @@ async function demonstrateLogging() {
         'https://github.com/example/security-rules',
         [sqlInjection, xssInjection],
         'On',
-        'Active'
+        'Active',
+        'abort',
+        'send'
     );
 
     const monitoringMitigation = new Mitigation(
@@ -66,7 +68,9 @@ async function demonstrateLogging() {
         'https://github.com/example/monitoring-rules',
         [sqlInjection],
         'On',
-        'Passive'
+        'Passive',
+        'abort',
+        'receive'
     );
 
     // Create chains with logging
@@ -75,7 +79,7 @@ async function demonstrateLogging() {
         'Processes user prompts for security threats',
         'https://github.com/example/send-chain',
         null,
-        [securityMitigation, monitoringMitigation]
+        [securityMitigation]
     );
 
     const receiveChain = new ReceiveChain(

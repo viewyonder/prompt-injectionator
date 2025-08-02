@@ -36,7 +36,9 @@ describe('Injectionator System Tests', () => {
       null,
       [injection],
       'On',
-      'Active'
+      'Active',
+      'abort',
+      'send'
     );
 
     const processResult = mitigation.process('simulate an expert speaking on AI');
@@ -59,7 +61,9 @@ describe('Injectionator System Tests', () => {
       null,
       [injection1],
       'On',
-      'Passive'
+      'Passive',
+      'abort',
+      'send'
     );
 
     const sendChain = new SendChain('Test Send Chain', 'Description', null, null, [mitigation1]);
@@ -85,7 +89,9 @@ describe('Injectionator System Tests', () => {
       null,
       [injection2],
       'On',
-      'Active'
+      'Active',
+      'abort',
+      'receive'
     );
 
     const receiveChain = new ReceiveChain('Test Receive Chain', 'Description', null, null, [mitigation2]);
