@@ -465,6 +465,10 @@ export class PromptInjectionatorCLI {
                     value: 'validate'
                 },
                 {
+                    name: '🔧 Manage Mitigations',
+                    value: 'mitigations'
+                },
+                {
                     name: '🔙 Back to Main Menu',
                     value: 'back'
                 }
@@ -491,6 +495,9 @@ export class PromptInjectionatorCLI {
                         console.log(chalk.red(`  • ${issue}`));
                     });
                 }
+                break;
+            case 'mitigations':
+                await this.handleMitigationManagement();
                 break;
             case 'back':
                 return;
@@ -590,6 +597,487 @@ export class PromptInjectionatorCLI {
                 const timestamp = new Date(log.timestamp).toLocaleTimeString();
                 console.log(`${chalk.gray(timestamp)} ${levelColor(level)} ${log.message}`);
             });
+        }
+
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Handle mitigation management - attach/detach mitigations to chains
+     */
+    async handleMitigationManagement() {
+        console.log(chalk.cyan('\n🔧 Managing Mitigations\n'));
+
+        const injectionator = this.session.getActiveInjectionator();
+        
+        // Show current mitigation status
+        this.displayMitigationStatus(injectionator);
+
+        const { chainType } = await inquirer.prompt([{
+            type: 'list',
+            name: 'chainType',
+            message: 'Which chain would you like to manage?',
+            choices: [
+                {
+                    name: '📤 Send Chain (Pre-LLM Processing)',
+                    value: 'send'
+                },
+                {
+                    name: '📥 Receive Chain (Post-LLM Processing)',
+                    value: 'receive'
+                },
+                {
+                    name: '🔙 Back to Configuration Menu',
+                    value: 'back'
+                }
+            ]
+        }]);
+
+        if (chainType === 'back') {
+            return;
+        }
+
+        const chain = chainType === 'send' ? injectionator.sendChain : injectionator.receiveChain;
+        if (!chain) {
+            console.log(chalk.red(`❌ ${chainType === 'send' ? 'Send' : 'Receive'} chain is not configured.`));
+            await this.pressEnterToContinue();
+            return;
+        }
+
+        await this.manageChainingMitigations(chain, chainType, injectionator);
+    }
+
+    /**
+     * Display current mitigation status for both chains
+     */
+    displayMitigationStatus(injectionator) {
+        console.log(chalk.bold('Current Mitigation Status:'));
+        console.log('─'.repeat(60));
+
+        // Send Chain Status
+        if (injectionator.sendChain) {
+            console.log(chalk.cyan('\n📤 Send Chain:'));
+            if (injectionator.sendChain.mitigations.length === 0) {
+                console.log(chalk.gray('  No mitigations attached'));
+            } else {
+                injectionator.sendChain.mitigations.forEach((mitigation, index) => {
+                    const status = mitigation.state === 'On' ? chalk.green('✓ Active') : chalk.gray('✘ Inactive');
+                    const mode = mitigation.mode === 'Active' ? chalk.red('[Active]') : chalk.yellow('[Passive]');
+                    console.log(`  ${index + 1}. ${chalk.white(mitigation.name)} ${status} ${mode}`);
+                    console.log(`     ${chalk.gray(mitigation.description || 'No description')}`);
+                });
+            }
+        } else {
+            console.log(chalk.gray('\n📤 Send Chain: Not configured'));
+        }
+
+        // Receive Chain Status
+        if (injectionator.receiveChain) {
+            console.log(chalk.cyan('\n📥 Receive Chain:'));
+            if (injectionator.receiveChain.mitigations.length === 0) {
+                console.log(chalk.gray('  No mitigations attached'));
+            } else {
+                injectionator.receiveChain.mitigations.forEach((mitigation, index) => {
+                    const status = mitigation.state === 'On' ? chalk.green('✓ Active') : chalk.gray('✘ Inactive');
+                    const mode = mitigation.mode === 'Active' ? chalk.red('[Active]') : chalk.yellow('[Passive]');
+                    console.log(`  ${index + 1}. ${chalk.white(mitigation.name)} ${status} ${mode}`);
+                    console.log(`     ${chalk.gray(mitigation.description || 'No description')}`);
+                });
+            }
+        } else {
+            console.log(chalk.gray('\n📥 Receive Chain: Not configured'));
+        }
+
+        console.log('');
+    }
+
+    /**
+     * Manage mitigations for a specific chain
+     */
+    async manageChainingMitigations(chain, chainType, injectionator) {
+        const chainName = chainType === 'send' ? 'Send Chain' : 'Receive Chain';
+        
+        while (true) {
+            console.log(chalk.cyan(`\n🔧 Managing ${chainName}\n`));
+            
+            // Display current mitigations in this chain
+            this.displayChainMitigations(chain, chainName);
+            
+            const choices = [
+                {
+                    name: '➕ Attach New Mitigation',
+                    value: 'attach'
+                },
+                {
+                    name: '➖ Detach Existing Mitigation',
+                    value: 'detach',
+                    disabled: chain.mitigations.length === 0 ? 'No mitigations to detach' : false
+                },
+                {
+                    name: '🔄 Toggle Mitigation State (On/Off)',
+                    value: 'toggle',
+                    disabled: chain.mitigations.length === 0 ? 'No mitigations to toggle' : false
+                },
+                {
+                    name: '⚙️ Change Mitigation Mode (Active/Passive)',
+                    value: 'mode',
+                    disabled: chain.mitigations.length === 0 ? 'No mitigations to modify' : false
+                },
+                {
+                    name: '🔄 Reorder Mitigations',
+                    value: 'reorder',
+                    disabled: chain.mitigations.length < 2 ? 'Need at least 2 mitigations to reorder' : false
+                },
+                {
+                    name: '🔙 Back to Chain Selection',
+                    value: 'back'
+                }
+            ];
+
+            const { action } = await inquirer.prompt([{
+                type: 'list',
+                name: 'action',
+                message: `What would you like to do with the ${chainName}?`,
+                choices: choices
+            }]);
+
+            switch (action) {
+                case 'attach':
+                    await this.attachMitigation(chain, chainType, injectionator);
+                    break;
+                case 'detach':
+                    await this.detachMitigation(chain, chainName);
+                    break;
+                case 'toggle':
+                    await this.toggleMitigationState(chain, chainName);
+                    break;
+                case 'mode':
+                    await this.changeMitigationMode(chain, chainName);
+                    break;
+                case 'reorder':
+                    await this.reorderMitigations(chain, chainName);
+                    break;
+                case 'back':
+                    return;
+            }
+
+            // Mark injectionator as modified
+            injectionator.lastModified = new Date();
+        }
+    }
+
+    /**
+     * Display mitigations in a specific chain
+     */
+    displayChainMitigations(chain, chainName) {
+        console.log(`Current ${chainName} Mitigations:`);
+        if (chain.mitigations.length === 0) {
+            console.log(chalk.gray('  No mitigations attached'));
+        } else {
+            chain.mitigations.forEach((mitigation, index) => {
+                const status = mitigation.state === 'On' ? chalk.green('✓') : chalk.red('✘');
+                const mode = mitigation.mode === 'Active' ? chalk.red('[Active]') : chalk.yellow('[Passive]');
+                console.log(`  ${index + 1}. ${status} ${chalk.white(mitigation.name)} ${mode}`);
+                console.log(`     ${chalk.gray(mitigation.description || 'No description')}`);
+            });
+        }
+        console.log('');
+    }
+
+    /**
+     * Attach a new mitigation to a chain
+     */
+    async attachMitigation(chain, chainType, injectionator) {
+        console.log(chalk.cyan(`\n➕ Attaching Mitigation to ${chainType === 'send' ? 'Send' : 'Receive'} Chain\n`));
+
+        // Get available injections from the injectionator config
+        const availableInjections = Object.keys(injectionator.injections || {});
+        
+        if (availableInjections.length === 0) {
+            console.log(chalk.yellow('⚠️  No injection patterns are available. You need to add injection patterns first.'));
+            await this.pressEnterToContinue();
+            return;
+        }
+
+        // Filter injections that are compatible with this chain type
+        const compatibleInjections = availableInjections.filter(injectionName => {
+            const injection = injectionator.injections[injectionName];
+            // For now, assume all injections can be used in both chains
+            // In a real implementation, you might want to check injection.pipeline property
+            return true;
+        });
+
+        if (compatibleInjections.length === 0) {
+            console.log(chalk.yellow(`⚠️  No injection patterns are compatible with ${chainType} chains.`));
+            await this.pressEnterToContinue();
+            return;
+        }
+
+        const injectionChoices = compatibleInjections.map(injectionName => {
+            const injection = injectionator.injections[injectionName];
+            return {
+                name: `${injection.name} - ${chalk.gray(injection.description || 'No description')}`,
+                value: injectionName
+            };
+        });
+
+        const { selectedInjection } = await inquirer.prompt([{
+            type: 'list',
+            name: 'selectedInjection',
+            message: 'Select an injection pattern to create a mitigation:',
+            choices: injectionChoices,
+            pageSize: 10
+        }]);
+
+        const injection = injectionator.injections[selectedInjection];
+
+        // Get mitigation details
+        const mitigationDetails = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'name',
+                message: 'Enter mitigation name:',
+                default: injection.type || injection.name,
+                validate: input => input.trim().length > 0 || 'Name is required'
+            },
+            {
+                type: 'input',
+                name: 'description',
+                message: 'Enter mitigation description (optional):',
+                default: injection.description || ''
+            },
+            {
+                type: 'list',
+                name: 'mode',
+                message: 'Select mitigation mode:',
+                choices: [
+                    {
+                        name: 'Active - Blocks execution when detected',
+                        value: 'Active'
+                    },
+                    {
+                        name: 'Passive - Logs detection but allows execution',
+                        value: 'Passive'
+                    }
+                ],
+                default: 'Active'
+            },
+            {
+                type: 'list',
+                name: 'state',
+                message: 'Initial state:',
+                choices: [
+                    { name: 'On - Mitigation is active', value: 'On' },
+                    { name: 'Off - Mitigation is disabled', value: 'Off' }
+                ],
+                default: 'On'
+            }
+        ]);
+
+        try {
+            // Create mitigation (this would need to be implemented in your core classes)
+            const newMitigation = {
+                id: crypto.randomUUID(),
+                name: mitigationDetails.name,
+                description: mitigationDetails.description,
+                pipeline: chainType, // 'send' or 'receive'
+                state: mitigationDetails.state,
+                mode: mitigationDetails.mode,
+                injections: [injection], // Array of injection objects
+                action: mitigationDetails.mode === 'Active' ? 'abort' : 'flag'
+            };
+
+            // Add mitigation to chain
+            chain.addMitigation(newMitigation);
+            
+            console.log(chalk.green(`\n✅ Successfully attached '${mitigationDetails.name}' to ${chainType === 'send' ? 'Send' : 'Receive'} Chain`));
+            
+            this.session.log('info', `Attached mitigation '${mitigationDetails.name}' to ${chainType} chain`);
+            
+        } catch (error) {
+            console.log(chalk.red(`\n❌ Failed to attach mitigation: ${error.message}`));
+        }
+
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Detach a mitigation from a chain
+     */
+    async detachMitigation(chain, chainName) {
+        console.log(chalk.cyan(`\n➖ Detaching Mitigation from ${chainName}\n`));
+
+        const choices = chain.mitigations.map((mitigation, index) => ({
+            name: `${mitigation.name} - ${chalk.gray(mitigation.description || 'No description')}`,
+            value: index
+        }));
+
+        const { mitigationIndex } = await inquirer.prompt([{
+            type: 'list',
+            name: 'mitigationIndex',
+            message: 'Select mitigation to detach:',
+            choices: choices
+        }]);
+
+        const mitigationToRemove = chain.mitigations[mitigationIndex];
+        
+        const { confirm } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'confirm',
+            message: `Are you sure you want to detach '${mitigationToRemove.name}'?`,
+            default: false
+        }]);
+
+        if (confirm) {
+            try {
+                chain.removeMitigation(mitigationToRemove.id);
+                console.log(chalk.green(`\n✅ Successfully detached '${mitigationToRemove.name}' from ${chainName}`));
+                this.session.log('info', `Detached mitigation '${mitigationToRemove.name}' from chain`);
+            } catch (error) {
+                console.log(chalk.red(`\n❌ Failed to detach mitigation: ${error.message}`));
+            }
+        } else {
+            console.log(chalk.yellow('\n❌ Detachment cancelled'));
+        }
+
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Toggle mitigation state (On/Off)
+     */
+    async toggleMitigationState(chain, chainName) {
+        console.log(chalk.cyan(`\n🔄 Toggling Mitigation State in ${chainName}\n`));
+
+        const choices = chain.mitigations.map((mitigation, index) => {
+            const currentState = mitigation.state === 'On' ? chalk.green('✓ On') : chalk.red('✘ Off');
+            return {
+                name: `${mitigation.name} - Currently ${currentState}`,
+                value: index
+            };
+        });
+
+        const { mitigationIndex } = await inquirer.prompt([{
+            type: 'list',
+            name: 'mitigationIndex',
+            message: 'Select mitigation to toggle:',
+            choices: choices
+        }]);
+
+        const mitigation = chain.mitigations[mitigationIndex];
+        const newState = mitigation.state === 'On' ? 'Off' : 'On';
+        
+        mitigation.state = newState;
+        
+        const stateColor = newState === 'On' ? chalk.green('ON') : chalk.red('OFF');
+        console.log(chalk.green(`\n✅ '${mitigation.name}' is now ${stateColor}`));
+        
+        this.session.log('info', `Toggled mitigation '${mitigation.name}' to ${newState}`);
+        
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Change mitigation mode (Active/Passive)
+     */
+    async changeMitigationMode(chain, chainName) {
+        console.log(chalk.cyan(`\n⚙️ Changing Mitigation Mode in ${chainName}\n`));
+
+        const choices = chain.mitigations.map((mitigation, index) => {
+            const currentMode = mitigation.mode === 'Active' ? chalk.red('[Active]') : chalk.yellow('[Passive]');
+            return {
+                name: `${mitigation.name} - Currently ${currentMode}`,
+                value: index
+            };
+        });
+
+        const { mitigationIndex } = await inquirer.prompt([{
+            type: 'list',
+            name: 'mitigationIndex',
+            message: 'Select mitigation to change mode:',
+            choices: choices
+        }]);
+
+        const mitigation = chain.mitigations[mitigationIndex];
+        
+        const { newMode } = await inquirer.prompt([{
+            type: 'list',
+            name: 'newMode',
+            message: `Change mode for '${mitigation.name}':`,
+            choices: [
+                {
+                    name: 'Active - Blocks execution when patterns are detected',
+                    value: 'Active'
+                },
+                {
+                    name: 'Passive - Logs detection but allows execution to continue',
+                    value: 'Passive'
+                }
+            ],
+            default: mitigation.mode
+        }]);
+
+        mitigation.mode = newMode;
+        mitigation.action = newMode === 'Active' ? 'abort' : 'flag';
+        
+        const modeColor = newMode === 'Active' ? chalk.red('ACTIVE') : chalk.yellow('PASSIVE');
+        console.log(chalk.green(`\n✅ '${mitigation.name}' mode changed to ${modeColor}`));
+        
+        this.session.log('info', `Changed mitigation '${mitigation.name}' mode to ${newMode}`);
+        
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Reorder mitigations in a chain
+     */
+    async reorderMitigations(chain, chainName) {
+        console.log(chalk.cyan(`\n🔄 Reordering Mitigations in ${chainName}\n`));
+        console.log('Current order:');
+        
+        chain.mitigations.forEach((mitigation, index) => {
+            console.log(`  ${index + 1}. ${mitigation.name}`);
+        });
+        
+        const choices = chain.mitigations.map((mitigation, index) => ({
+            name: `${index + 1}. ${mitigation.name}`,
+            value: index
+        }));
+
+        const { fromIndex } = await inquirer.prompt([{
+            type: 'list',
+            name: 'fromIndex',
+            message: 'Select mitigation to move:',
+            choices: choices
+        }]);
+
+        const { toIndex } = await inquirer.prompt([{
+            type: 'list',
+            name: 'toIndex',
+            message: `Move '${chain.mitigations[fromIndex].name}' to position:`,
+            choices: choices.map((choice, index) => ({
+                ...choice,
+                name: `Position ${index + 1}${index === fromIndex ? ' (current)' : ''}`
+            }))
+        }]);
+
+        if (fromIndex !== toIndex) {
+            try {
+                chain.reorderMitigation(fromIndex, toIndex);
+                console.log(chalk.green(`\n✅ Successfully moved '${chain.mitigations[toIndex].name}' to position ${toIndex + 1}`));
+                
+                console.log('\nNew order:');
+                chain.mitigations.forEach((mitigation, index) => {
+                    console.log(`  ${index + 1}. ${mitigation.name}`);
+                });
+                
+                this.session.log('info', `Reordered mitigations in ${chainName}`);
+                
+            } catch (error) {
+                console.log(chalk.red(`\n❌ Failed to reorder mitigations: ${error.message}`));
+            }
+        } else {
+            console.log(chalk.yellow('\n❌ No change - same position selected'));
         }
 
         await this.pressEnterToContinue();
