@@ -1,0 +1,18 @@
+{
+  "name": "system-test-injectionator",
+  "description": "A test configuration for system tests",
+  "sendChain": {
+    "name": "Test Send Chain",
+    "mitigations": []
+  },
+  "receiveChain": {
+    "name": "Test Receive Chain",
+    "mitigations": []
+  },
+  "backend": {
+    "name": "mock-backend",
+    "type": "llm",
+    "provider": "mockup"
+  },
+  "injections": {}
+}
