@@ -391,11 +391,11 @@ export class Injectionator {
 
         const processMitigations = (mitigations) => {
             mitigations.forEach((mitigation) => {
-                const { name, injections } = mitigation;
+                const { injections } = mitigation;
                 if (injections && injections.length > 0) {
                     injections.forEach((injection) => {
-                        if (injection && !uniqueInjections[name]) {
-                            uniqueInjections[name] = injection.toJSON();
+                        if (injection && !uniqueInjections[injection.name]) {
+                            uniqueInjections[injection.name] = injection.toJSON();
                         }
                     });
                 }
