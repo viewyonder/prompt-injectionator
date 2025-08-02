@@ -1,0 +1,162 @@
+{
+    "name": "Security Injectionator Example",
+    "description": "Example configuration demonstrating security mitigations and content filtering",
+    "sourceUrl": "https://github.com/viewyonder/prompt-injectionator/examples",
+    "sendChain": {
+        "name": "Security Send Chain",
+        "description": "Pre-validates user inputs for security threats",
+        "sourceUrl": null,
+        "mitigations": [
+            {
+                "name": "Jailbreak Detection",
+                "description": "Detects DAN-style jailbreak attempts",
+                "injection": "jailbreak-dan"
+            },
+            {
+                "name": "Prompt Extraction Prevention",
+                "description": "Blocks attempts to extract the system prompt",
+                "injection": "prompt-extraction"
+            }
+        ]
+    },
+    "receiveChain": {
+        "name": "Content Filter Chain",
+        "description": "Filters backend responses for inappropriate content",
+        "sourceUrl": null,
+        "outputTarget": "user",
+        "mitigations": [
+            {
+                "name": "Sensitive Data Filter",
+                "description": "Removes API keys and sensitive information",
+                "injection": "sensitive-data-filter"
+            },
+            {
+                "name": "Context Switch Detection",
+                "description": "Detects responses that might switch conversation context",
+                "injection": "context-switch"
+            }
+        ]
+    },
+    "backend": {
+        "name": "Example LLM Backend",
+        "type": "llm",
+        "provider": "mockup",
+        "model": "mock-gpt-4",
+        "maxTokens": 2000,
+        "temperature": 0.7,
+        "apiKeyRef": null
+    },
+    "injections": {
+        "jailbreak-dan": {
+            "name": "jailbreak-dan",
+            "type": "Jailbreak (DAN)",
+            "description": "Do Anything Now - attempts to bypass AI safety guidelines",
+            "patterns": [
+                {
+                    "type": "string",
+                    "value": "do anything now"
+                },
+                {
+                    "type": "string",
+                    "value": "ignore all previous instructions"
+                },
+                {
+                    "type": "string",
+                    "value": "ignore previous instructions"
+                },
+                {
+                    "type": "regex",
+                    "source": "act.*as.*dan",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "developer.*mode",
+                    "flags": "gi"
+                }
+            ]
+        },
+        "prompt-extraction": {
+            "name": "prompt-extraction",
+            "type": "Prompt Extraction",
+            "description": "Attempts to extract or reveal the system prompt",
+            "patterns": [
+                {
+                    "type": "string",
+                    "value": "show me your prompt"
+                },
+                {
+                    "type": "string",
+                    "value": "what are your instructions"
+                },
+                {
+                    "type": "regex",
+                    "source": "system.*prompt",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "reveal.*instructions",
+                    "flags": "gi"
+                }
+            ]
+        },
+        "sensitive-data-filter": {
+            "name": "sensitive-data-filter",
+            "type": "Sensitive Data Filter",
+            "description": "Removes sensitive information like API keys and credentials",
+            "patterns": [
+                {
+                    "type": "regex",
+                    "source": "api[_-]?key",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "password",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "secret[_-]?key",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "bearer\\s+[a-zA-Z0-9]+",
+                    "flags": "gi"
+                }
+            ]
+        },
+        "context-switch": {
+            "name": "context-switch",
+            "type": "Context Switch",
+            "description": "Detects attempts to switch conversation context through hypothetical scenarios",
+            "patterns": [
+                {
+                    "type": "string",
+                    "value": "hypothetically speaking"
+                },
+                {
+                    "type": "string",
+                    "value": "in a fictional scenario"
+                },
+                {
+                    "type": "regex",
+                    "source": "imagine.*you.*are",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "pretend.*to.*be",
+                    "flags": "gi"
+                },
+                {
+                    "type": "regex",
+                    "source": "fictional.*story",
+                    "flags": "gi"
+                }
+            ]
+        }
+    }
+}
