@@ -1,5 +1,6 @@
 import { LLMBackend } from '../src/backends/LLMBackend.js';
 import { WebhookBackend } from '../src/backends/WebhookBackend.js';
+import { GeminiBackend } from '../src/backends/GeminiBackend.js';
 import { Backend } from '../src/backends/Backend.js';
 import { Injectionator } from '../src/core/Injectionator.js';
 import { SendChain, ReceiveChain } from '../src/core/Chain.js';
@@ -7,9 +8,11 @@ import { Mitigation } from '../src/core/Mitigation.js';
 import { Injection } from '../src/core/Injection.js';
 
 // Mock crypto.randomUUID for ES modules
-global.crypto = {
-    randomUUID: () => 'example-uuid-' + Date.now()
-};
+if (!globalThis.crypto?.randomUUID) {
+    globalThis.crypto = {
+        randomUUID: () => 'example-uuid-' + Date.now()
+    };
+}
 
 /**
  * Example 1: Using LLM Backend with Injectionator
@@ -184,10 +187,74 @@ async function exampleMockBackend() {
 }
 
 /**
- * Example 4: Backend Configuration and Validation
+ * Example 4: Using Gemini Backend with Poetry Generation
+ */
+async function exampleGeminiBackend() {
+    console.log('\\n=== Example 4: Gemini Backend ===');
+    
+    // Create Gemini backend with Google provider configuration
+    const geminiBackend = new GeminiBackend('Google Gemini', {
+        provider: 'google',
+        model: 'gemini-1.5-flash',
+        maxTokens: 1000,
+        temperature: 0.7
+    });
+    
+    // Create chains with content filtering mitigation
+    const contentInjection = new Injection(
+        'Inappropriate Content',
+        'content-filter',
+        'Detects inappropriate or harmful content requests',
+        ['violence', 'harmful', 'explicit', 'illegal']
+    );
+    
+    const contentMitigation = new Mitigation(
+        'Content Filter',
+        'Active',
+        'Blocks inappropriate content requests',
+        [contentInjection]
+    );
+    
+    const sendChain = new SendChain(
+        'Gemini Send Chain',
+        'Validates prompts before Gemini API call',
+        'https://github.com/example/gemini-chain',
+        null,
+        [contentMitigation]
+    );
+    
+    const receiveChain = new ReceiveChain('Gemini Receive Chain', 'Processes Gemini responses');
+    
+    // Create injectionator
+    const injectionator = new Injectionator(
+        'Gemini Injectionator',
+        'Processes prompts through Google Gemini API',
+        'https://github.com/example/gemini-injectionator',
+        sendChain,
+        receiveChain,
+        geminiBackend
+    );
+    
+    // Execute with creative prompt
+    const result = await injectionator.execute('Write a short, whimsical poem about crawdads dancing in moonlight');
+    
+    console.log('Execution Result:', {
+        success: result.success,
+        finalResponse: result.finalResponse,
+        provider: result.steps[1]?.result?.metadata?.provider,
+        model: result.steps[1]?.result?.metadata?.model,
+        processingTime: result.steps[1]?.result?.metadata?.processingTime + 'ms',
+        tokensUsed: result.steps[1]?.result?.metadata?.usage
+    });
+    
+    return result;
+}
+
+/**
+ * Example 5: Backend Configuration and Validation
  */
 function exampleBackendValidation() {
-    console.log('\\n=== Example 4: Backend Validation ===');
+    console.log('\\n=== Example 5: Backend Validation ===');
     
     // Create backends with invalid configurations
     const invalidWebhook = new WebhookBackend('Invalid Webhook', {
@@ -205,10 +272,10 @@ function exampleBackendValidation() {
 }
 
 /**
- * Example 5: Switching Between Backends
+ * Example 6: Switching Between Backends
  */
 async function exampleBackendSwitching() {
-    console.log('\\n=== Example 5: Backend Switching ===');
+    console.log('\\n=== Example 6: Backend Switching ===');
     
     // Create different backends
     const llmBackend = new LLMBackend('Primary LLM');
@@ -260,6 +327,7 @@ async function runAllExamples() {
         await exampleLLMBackend();
         await exampleWebhookBackend();
         await exampleMockBackend();
+        await exampleGeminiBackend();
         exampleBackendValidation();
         await exampleBackendSwitching();
         
@@ -274,6 +342,7 @@ export {
     exampleLLMBackend,
     exampleWebhookBackend,
     exampleMockBackend,
+    exampleGeminiBackend,
     exampleBackendValidation,
     exampleBackendSwitching,
     runAllExamples

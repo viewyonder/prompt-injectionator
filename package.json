@@ -7,5 +7,8 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
     "example:secure-api": "node examples/secure-api-usage.js",
     "example:help": "node examples/secure-api-usage.js --help"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
   }
 }
