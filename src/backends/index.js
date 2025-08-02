@@ -8,23 +8,26 @@ export { Backend } from './Backend.js';
 // Backend implementations
 export { LLMBackend } from './LLMBackend.js';
 export { WebhookBackend } from './WebhookBackend.js';
+export { GeminiBackend } from './GeminiBackend.js';
 
 // Default exports for convenience
 export { default as BackendBase } from './Backend.js';
 export { default as LLM } from './LLMBackend.js';
 export { default as Webhook } from './WebhookBackend.js';
+export { default as Gemini } from './GeminiBackend.js';
 
 /**
  * Backend registry for dynamic backend creation
  */
 export const BackendTypes = {
     llm: 'LLMBackend',
-    webhook: 'WebhookBackend'
+    webhook: 'WebhookBackend',
+    gemini: 'GeminiBackend'
 };
 
 /**
  * Backend factory function
- * @param {string} type - Backend type ('llm' or 'webhook')
+ * @param {string} type - Backend type ('llm', 'webhook', or 'gemini')
  * @param {string} name - Backend instance name
  * @param {object} config - Backend configuration
  * @returns {Backend} Backend instance
@@ -37,6 +40,9 @@ export function createBackend(type, name, config = {}) {
         case 'webhook':
             const { WebhookBackend } = await import('./WebhookBackend.js');
             return new WebhookBackend(name, config);
+        case 'gemini':
+            const { GeminiBackend } = await import('./GeminiBackend.js');
+            return new GeminiBackend(name, config);
         default:
             throw new Error(`Unknown backend type: ${type}`);
     }
