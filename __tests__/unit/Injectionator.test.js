@@ -1,6 +1,6 @@
-import { Injection } from '../src/core/Injection';
-import { Mitigation } from '../src/core/Mitigation';
-import { SendChain, ReceiveChain } from '../src/core/Chain';
+import { Injection } from '../../src/core/Injection';
+import { Mitigation } from '../../src/core/Mitigation';
+import { SendChain, ReceiveChain } from '../../src/core/Chain';
 
 // Mock crypto.randomUUID for ES modules
 global.crypto = {

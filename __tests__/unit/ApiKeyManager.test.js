@@ -1,4 +1,4 @@
-import { ApiKeyManager } from '../src/core/ApiKeyManager.js';
+import { ApiKeyManager } from '../../src/core/ApiKeyManager';
 
 describe('ApiKeyManager', () => {
     let apiKeyManager;

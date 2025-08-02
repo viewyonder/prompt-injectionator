@@ -1,4 +1,4 @@
-import logger, { Logger } from '../src/core/Logger.js';
+import logger, { Logger } from '../../src/core/Logger.js';
 
 describe('Logger', () => {
     beforeEach(() => {

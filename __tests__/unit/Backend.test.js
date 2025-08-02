@@ -1,8 +1,8 @@
-import { Backend } from '../src/backends/Backend.js';
-import { LLMBackend } from '../src/backends/LLMBackend.js';
-import { WebhookBackend } from '../src/backends/WebhookBackend.js';
-import { Injectionator } from '../src/core/Injectionator.js';
-import { SendChain, ReceiveChain } from '../src/core/Chain.js';
+import { Backend } from '../../src/backends/Backend.js';
+import { LLMBackend } from '../../src/backends/LLMBackend.js';
+import { WebhookBackend } from '../../src/backends/WebhookBackend.js';
+import { Injectionator } from '../../src/core/Injectionator.js';
+import { SendChain, ReceiveChain } from '../../src/core/Chain.js';
 
 // Mock crypto.randomUUID for ES modules
 global.crypto = {

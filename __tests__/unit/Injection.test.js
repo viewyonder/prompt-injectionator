@@ -1,4 +1,4 @@
-import { Injection } from '../src/core/Injection';
+import { Injection } from '../../src/core/Injection';
 
 // Mock crypto.randomUUID for ES modules
 global.crypto = {

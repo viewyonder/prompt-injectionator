@@ -1,5 +1,5 @@
-import { loadInjectionatorConfig, saveInjectionatorConfig } from '../src/core/InjectionatorConfig';
-import { Injectionator } from '../src/core/Injectionator';
+import { loadInjectionatorConfig, saveInjectionatorConfig } from '../../src/core/InjectionatorConfig';
+import { Injectionator } from '../../src/core/Injectionator';
 import fs from 'fs';
 
 // Mock crypto.randomUUID for ES modules
@@ -8,7 +8,7 @@ global.crypto = {
 };
 
 describe('InjectionatorConfig Tests', () => {
-    const testFilePath = '__tests__/Injectionator.json';
+    const testFilePath = '__tests__/unit/Injectionator.json';
     let injectionator = null;
 
     beforeAll(() => {
@@ -38,7 +38,7 @@ describe('InjectionatorConfig Tests', () => {
     });
 
     test('Save Injectionator Config', () => {
-        const savePath = '__tests__/SavedInjectionator.json';
+        const savePath = '__tests__/unit/SavedInjectionator.json';
         saveInjectionatorConfig(injectionator, savePath);
         
         const savedData = JSON.parse(fs.readFileSync(savePath, 'utf-8'));
@@ -71,7 +71,7 @@ describe('InjectionatorConfig Tests', () => {
     });
     
     test('Round-trip save and load', () => {
-        const savePath = '__tests__/RoundTripInjectionator.json';
+        const savePath = '__tests__/unit/RoundTripInjectionator.json';
         
         // Save the loaded injectionator
         saveInjectionatorConfig(injectionator, savePath);
