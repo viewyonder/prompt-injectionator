@@ -15,6 +15,8 @@ import ora from 'ora';
 import boxen from 'boxen';
 import { table } from 'table';
 import { CLISession } from './CLISession.js';
+import { InjectionatorVisualizer } from './utils/InjectionatorVisualizer.js';
+import { ExecutionLogger } from './utils/ExecutionLogger.js';
 import { ConfigurationManager } from './ConfigurationManager.js';
 import fs from 'fs';
 import path from 'path';
@@ -154,6 +156,11 @@ export class PromptInjectionatorCLI {
                 disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
             },
             {
+                name: '📊 View Injectionator Diagram',
+                value: 'diagram',
+                disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
+            },
+            {
                 name: '📊 View Session History',
                 value: 'history'
             },
@@ -185,6 +192,9 @@ export class PromptInjectionatorCLI {
                 break;
             case 'save':
                 await this.handleSaveConfiguration();
+                break;
+            case 'diagram':
+                await this.displayInjectionatorDiagram();
                 break;
             case 'execute':
                 await this.handleExecutePrompt();
@@ -413,6 +423,17 @@ export class PromptInjectionatorCLI {
     }
 
     /**
+     * Display the Injectionator diagram
+     */
+    async displayInjectionatorDiagram() {
+        console.log(chalk.cyan('\n📊 Injectionator Diagram\n'));
+        const injectionator = this.session.getActiveInjectionator();
+        InjectionatorVisualizer.renderDiagram(injectionator);
+
+        await this.pressEnterToContinue();
+    }
+
+    /**
      * Handle prompt execution
      */
     async handleExecutePrompt() {
@@ -436,40 +457,9 @@ export class PromptInjectionatorCLI {
             // Log execution to session
             this.session.logExecution(promptText, result);
 
-            // Display result
-            console.log(chalk.bold('\nExecution Result:'));
-            console.log('─'.repeat(50));
-            
-            if (result.success) {
-                console.log(chalk.green('✅ Status: SUCCESS'));
-                console.log(chalk.bold('Response:'));
-                console.log(chalk.white(result.finalResponse));
-            } else {
-                console.log(chalk.red('❌ Status: BLOCKED'));
-                console.log(chalk.bold(`Blocked at: ${result.blockedAt}`));
-                console.log(chalk.yellow('Response:'));
-                console.log(chalk.white(result.finalResponse));
-            }
-
-            console.log(chalk.gray(`\nProcessing Time: ${new Date(result.endTime) - new Date(result.startTime)}ms`));
-            console.log(chalk.gray(`Steps: ${result.steps.length}`));
-
-            // Ask if user wants to see detailed execution steps
-            const { showDetails } = await inquirer.prompt([{
-                type: 'confirm',
-                name: 'showDetails',
-                message: 'Show detailed execution steps?',
-                default: false
-            }]);
-
-            if (showDetails) {
-                console.log(chalk.bold('\nDetailed Execution Steps:'));
-                result.steps.forEach((step, index) => {
-                    console.log(chalk.cyan(`\n${index + 1}. ${step.step.toUpperCase()}`));
-                    console.log(chalk.gray(`   Chain/Backend: ${step.chainName || step.backendName || 'Unknown'}`));
-                    console.log(chalk.gray(`   Result: ${step.result.passed !== undefined ? (step.result.passed ? 'PASSED' : 'BLOCKED') : (step.result.success ? 'SUCCESS' : 'FAILED')}`));
-                });
-            }
+            // Display human-readable execution log
+            const executionLog = ExecutionLogger.createExecutionLog(result, injectionator.name);
+            console.log(executionLog);
 
         } catch (error) {
             spinner.stop();
