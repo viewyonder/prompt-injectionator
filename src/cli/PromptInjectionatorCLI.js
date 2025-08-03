@@ -469,6 +469,48 @@ case 'execute':
             const executionLog = ExecutionLogger.createExecutionLog(result, injectionator.name);
             console.log(executionLog);
 
+            // Display the backend response if execution was successful
+            if (result.success) {
+                // Try multiple possible field names for the response
+                const backendResponse = result.finalResponse || 
+                                      result.llmResponse || 
+                                      result.response || 
+                                      (result.steps && result.steps.find(s => s.step === 'llm_backend')?.result?.response);
+                
+                if (backendResponse) {
+                    console.log('\n' + boxen(
+                        chalk.white.bold('🤖 Backend Response:\n\n') + 
+                        chalk.cyan(backendResponse),
+                        {
+                            padding: 1,
+                            margin: { top: 1, bottom: 1, left: 0, right: 0 },
+                            borderStyle: 'round',
+                            borderColor: 'green',
+                            title: chalk.green.bold('✅ Response'),
+                            titleAlignment: 'left'
+                        }
+                    ));
+                }
+            } else {
+                // Show why it was blocked
+                const blockReason = result.reason || result.blockedReason || 
+                                  (result.steps && result.steps.find(s => !s.result?.passed)?.result?.reason) ||
+                                  'Request was blocked by security mitigations';
+                                  
+                console.log('\n' + boxen(
+                    chalk.red.bold('🚫 Execution Blocked\n\n') + 
+                    chalk.yellow(blockReason),
+                    {
+                        padding: 1,
+                        margin: { top: 1, bottom: 1, left: 0, right: 0 },
+                        borderStyle: 'round',
+                        borderColor: 'red',
+                        title: chalk.red.bold('❌ Blocked'),
+                        titleAlignment: 'left'
+                    }
+                ));
+            }
+
         } catch (error) {
             spinner.stop();
             console.log(chalk.red('❌ Execution failed: ') + error.message);

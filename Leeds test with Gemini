@@ -1,0 +1,72 @@
+{
+  "name": "CLI Test",
+  "description": "Test a basic in and out",
+  "sourceUrl": null,
+  "sendChain": {
+    "name": "Send Security Chain",
+    "mitigations": [
+      {
+        "name": "Basic Security Check",
+        "description": "Detects common prompt injection patterns",
+        "injection": "basic-injection-detection"
+      }
+    ],
+    "description": "Validates user prompts before sending to backend",
+    "sourceUrl": null
+  },
+  "receiveChain": {
+    "name": "Receive Filter Chain",
+    "mitigations": [
+      {
+        "name": "Response Sanitization",
+        "description": "Removes potentially harmful content from responses",
+        "injection": "response-sanitization"
+      }
+    ],
+    "description": "Filters backend responses before returning to user",
+    "sourceUrl": null,
+    "outputTarget": "user"
+  },
+  "backend": {
+    "name": "Google Gemini",
+    "type": "gemini",
+    "provider": "mockup",
+    "model": "gemini-1.5-flash",
+    "apiUrl": "https://generativelanguage.googleapis.com/v1beta/models",
+    "maxTokens": 1500,
+    "temperature": 0.7,
+    "topP": 0.8,
+    "topK": 40,
+    "apiKeyRef": null
+  },
+  "injections": {
+    "basic-injection-detection": {
+      "name": "basic-injection-detection",
+      "type": "Basic Injection Detection",
+      "description": "Detects common prompt injection patterns",
+      "patterns": [
+        {
+          "type": "string",
+          "value": "ignore previous instructions"
+        },
+        {
+          "type": "regex",
+          "source": "system.*prompt",
+          "flags": "gi"
+        }
+      ]
+    },
+    "response-sanitization": {
+      "name": "response-sanitization",
+      "type": "Response Sanitization",
+      "description": "Removes potentially sensitive information from responses",
+      "patterns": [
+        {
+          "type": "regex",
+          "source": "api[_-]?key",
+          "flags": "gi"
+        }
+      ]
+    }
+  }
+}
