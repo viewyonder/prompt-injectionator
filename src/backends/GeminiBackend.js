@@ -19,8 +19,30 @@ export class GeminiBackend extends Backend {
             ...config
         });
         
-        // Resolve API key at runtime if reference is provided
-        this.apiKey = config.apiKeyRef ? apiKeyManager.resolveKey(config.apiKeyRef) : null;
+        this.initialize();
+    }
+
+    /**
+     * Initializes the Gemini backend and resolves the API key
+     */
+    initialize() {
+        // Resolve API key at runtime - try multiple approaches
+        this.apiKey = null;
+        if (this.config.apiKeyRef && this.apiKeyManager) {
+            // Try API key manager first
+            try {
+                this.apiKey = this.apiKeyManager.resolveKey(this.config.apiKeyRef);
+            } catch (error) {
+                // Fallback to direct environment variable access
+                this.apiKey = process.env[this.config.apiKeyRef];
+            }
+        } else if (this.config.apiKey) {
+            // Direct API key provided
+            this.apiKey = this.config.apiKey;
+        } else {
+            // Try default environment variable
+            this.apiKey = process.env.GEMINI_API_KEY;
+        }
         
         // Initialize Gemini client if API key is available
         this.geminiClient = null;
@@ -34,6 +56,15 @@ export class GeminiBackend extends Backend {
                 });
             }
         }
+    }
+
+    /**
+     * Set the API key manager
+     * @param {ApiKeyManager} apiKeyManager - The API key manager
+     */
+    setApiKeyManager(apiKeyManager) {
+        this.apiKeyManager = apiKeyManager;
+        this.initialize();  // Re-initialize to resolve API key with manager
     }
 
     /**
