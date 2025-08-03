@@ -29,6 +29,15 @@ export class ApiKeyManager {
     }
 
     /**
+     * Check if a runtime key exists
+     * @param {string} keyRef - The API key reference name
+     * @returns {boolean} True if the key exists in runtime storage
+     */
+    hasRuntimeKey(keyRef) {
+        return this.runtimeKeys.has(keyRef);
+    }
+
+    /**
      * Resolve an API key by reference name
      * Priority: 1. Runtime keys (CLI) 2. Environment variables
      * @param {string} keyRef - The API key reference name

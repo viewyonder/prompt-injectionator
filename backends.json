@@ -1,0 +1,33 @@
+{
+  "backends": [
+    {
+      "id": "mock",
+      "name": "Mock Backend",
+      "description": "Replays the user prompt back - useful for testing without API calls",
+      "type": "mock",
+      "config": {
+        "provider": "mockup",
+        "responsePrefix": "Mock response: "
+      },
+      "requiresApiKey": false,
+      "default": true
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini",
+      "description": "Google's Gemini AI model for realistic responses",
+      "type": "gemini",
+      "config": {
+        "provider": "gemini",
+        "model": "gemini-1.5-flash",
+        "maxTokens": 1500,
+        "temperature": 0.7,
+        "topP": 0.8,
+        "topK": 40
+      },
+      "requiresApiKey": true,
+      "apiKeyEnvVar": "GEMINI_API_KEY",
+      "default": false
+    }
+  ]
+}

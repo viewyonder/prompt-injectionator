@@ -1,4 +1,4 @@
-import { Backend } from '../backends/Backend.js';
+import { Backend } from './Backend.js';
 
 /**
  * Mock Backend - replays user input for testing
@@ -86,3 +86,4 @@ export class MockBackend extends Backend {
     }
 }
 
+export default MockBackend;
