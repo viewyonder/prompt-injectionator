@@ -20,6 +20,7 @@ import { ExecutionLogger } from './utils/ExecutionLogger.js';
 import { ConfigurationManager } from './ConfigurationManager.js';
 import fs from 'fs';
 import path from 'path';
+import { createBackend, BackendTypes } from '../backends/index.js';
 import { fileURLToPath } from 'url';
 
 // Get current directory for ES modules
@@ -150,11 +151,15 @@ export class PromptInjectionatorCLI {
                 value: 'execute',
                 disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
             },
-            {
-                name: '⚙️  Manage Configuration',
-                value: 'manage',
-                disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
-            },
+{
+  name: '🔧 Select Backend',
+  value:'select_backend'
+},
+{
+  name: '⚙️  Manage Configuration',
+  value: 'manage',
+  disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
+},
             {
                 name: '📊 View Injectionator Diagram',
                 value: 'diagram',
@@ -196,9 +201,12 @@ export class PromptInjectionatorCLI {
             case 'diagram':
                 await this.displayInjectionatorDiagram();
                 break;
-            case 'execute':
-                await this.handleExecutePrompt();
-                break;
+case 'select_backend':
+    await this.handleSelectBackend();
+    break;
+case 'execute':
+    await this.handleExecutePrompt();
+    break;
             case 'manage':
                 await this.handleManageConfiguration();
                 break;
@@ -1112,6 +1120,83 @@ export class PromptInjectionatorCLI {
             }
         } else {
             console.log(chalk.yellow('\n❌ No change - same position selected'));
+        }
+
+        await this.pressEnterToContinue();
+    }
+
+    /**
+     * Handle backend selection
+     */
+    async handleSelectBackend() {
+        console.log(chalk.cyan('\n🔧 Selecting a Backend\n'));
+
+        const backendsConfigPath = path.join(process.cwd(), 'backends.json');
+        
+        if (!fs.existsSync(backendsConfigPath)) {
+            console.log(chalk.red('❌ backends.json configuration file not found.'));
+            await this.pressEnterToContinue();
+            return;
+        }
+
+        try {
+            const backendsConfig = JSON.parse(fs.readFileSync(backendsConfigPath, 'utf8'));
+
+            const backendChoices = backendsConfig.backends.map(backend => ({
+                name: `${backend.name} - ${chalk.gray(backend.description)}`,
+                value: backend.id
+            }));
+
+            const { selectedBackendId } = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'selectedBackendId',
+                    message: 'Select a backend:',
+                    choices: backendChoices
+                }
+            ]);
+
+            const selectedBackend = backendsConfig.backends.find(backend => backend.id === selectedBackendId);
+            let config = { ...selectedBackend.config };
+
+            // Handle API key requirements
+            if (selectedBackend.requiresApiKey) {
+                const apiKey = process.env[selectedBackend.apiKeyEnvVar];
+                if (!apiKey) {
+                    console.log(chalk.yellow(`⚠️  ${selectedBackend.name} requires an API key.`));
+                    console.log(chalk.gray(`Please set the ${selectedBackend.apiKeyEnvVar} environment variable.`));
+                    console.log(chalk.gray('Continuing with mockup mode...'));
+                    config.provider = 'mockup';
+                } else {
+                    config.apiKeyRef = selectedBackend.apiKeyEnvVar;
+                }
+            }
+
+            const spinner = ora('Creating backend...').start();
+            
+            try {
+                const backend = await createBackend(selectedBackend.type, selectedBackend.name, config);
+                this.session.setActiveBackend(backend);
+                
+                spinner.stop();
+                console.log(chalk.green(`✅ Selected backend: ${selectedBackend.name}`));
+                
+                // Update existing injectionator with new backend if one exists
+                if (this.session.hasActiveInjectionator()) {
+                    const injectionator = this.session.getActiveInjectionator();
+                    injectionator.llmBackend = backend;
+                    console.log(chalk.green(`✅ Updated active injectionator with new backend`));
+                }
+                
+                this.session.log('info', `Selected backend: ${selectedBackend.name}`);
+                
+            } catch (error) {
+                spinner.stop();
+                console.log(chalk.red(`❌ Failed to create backend: ${error.message}`));
+            }
+            
+        } catch (error) {
+            console.log(chalk.red(`❌ Error reading backends configuration: ${error.message}`));
         }
 
         await this.pressEnterToContinue();

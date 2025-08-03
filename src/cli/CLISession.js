@@ -13,6 +13,7 @@ export class CLISession {
         this.id = crypto.randomUUID();
         this.startTime = new Date();
         this.activeInjectionator = null;
+        this.activeBackend = null;
         this.executionHistory = [];
         this.sessionLogs = [];
         this.settings = {
@@ -45,6 +46,31 @@ export class CLISession {
      */
     hasActiveInjectionator() {
         return this.activeInjectionator !== null;
+    }
+
+    /**
+     * Set the active backend for this session
+     * @param {Backend} backend - The backend to set as active
+     */
+    setActiveBackend(backend) {
+        this.activeBackend = backend;
+        this.log('info', `Set active backend: ${backend.name}`);
+    }
+
+    /**
+     * Get the currently active backend
+     * @returns {Backend|null} The active backend or null if none
+     */
+    getActiveBackend() {
+        return this.activeBackend;
+    }
+
+    /**
+     * Check if there's an active backend
+     * @returns {boolean} True if there's an active backend
+     */
+    hasActiveBackend() {
+        return this.activeBackend !== null;
     }
 
     /**
