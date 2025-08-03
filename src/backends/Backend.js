@@ -10,6 +10,7 @@ export class Backend {
         this.config = config;
         this.id = crypto.randomUUID();
         this.createdAt = new Date();
+        this.apiKeyManager = null;  // Will be set by CLI session if available
         
         // Initialize logger with context
         this.logger = logger.withContext(`${this.type}:${this.name}`);
@@ -43,6 +44,14 @@ export class Backend {
             config: this.config,
             createdAt: this.createdAt
         };
+    }
+
+    /**
+     * Set the API key manager for this backend
+     * @param {ApiKeyManager} apiKeyManager - The API key manager instance
+     */
+    setApiKeyManager(apiKeyManager) {
+        this.apiKeyManager = apiKeyManager;
     }
 
     /**

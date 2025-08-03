@@ -8,6 +8,8 @@
  * - State persistence
  */
 
+import { ApiKeyManager } from '../core/ApiKeyManager.js';
+
 export class CLISession {
     constructor() {
         this.id = crypto.randomUUID();
@@ -16,6 +18,7 @@ export class CLISession {
         this.activeBackend = null;
         this.executionHistory = [];
         this.sessionLogs = [];
+        this.apiKeyManager = new ApiKeyManager();
         this.settings = {
             logLevel: 'info',
             maxHistoryEntries: 100,

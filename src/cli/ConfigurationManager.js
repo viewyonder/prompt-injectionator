@@ -246,6 +246,8 @@ export class ConfigurationManager {
      */
     getConfigurationSummary(injectionator) {
         try {
+            const backendInfo = this._getBackendInfo(injectionator.llmBackend);
+            
             return {
                 name: injectionator.name,
                 description: injectionator.description || 'No description',
@@ -253,6 +255,11 @@ export class ConfigurationManager {
                 receiveChainMitigations: injectionator.receiveChain?.mitigations?.length || 0,
                 backendType: injectionator.llmBackend?.type || 'Unknown',
                 backendName: injectionator.llmBackend?.name || 'Unknown',
+                backendProvider: backendInfo.provider,
+                backendModel: backendInfo.model,
+                backendApiUrl: backendInfo.apiUrl,
+                backendApiKeySource: backendInfo.apiKeySource,
+                backendConfigured: backendInfo.configured,
                 injectionCount: Object.keys(injectionator.injections || {}).length,
                 valid: injectionator.validate().valid
             };
@@ -264,6 +271,60 @@ export class ConfigurationManager {
                 valid: false
             };
         }
+    }
+
+    /**
+     * Extract detailed backend information for display
+     * @param {Backend} backend - The backend to analyze
+     * @returns {object} Backend information
+     * @private
+     */
+    _getBackendInfo(backend) {
+        if (!backend) {
+            return {
+                provider: 'Unknown',
+                model: 'Unknown',
+                apiUrl: 'Not configured',
+                apiKeySource: 'None',
+                configured: false
+            };
+        }
+
+        const config = backend.config || {};
+        let apiKeySource = 'None';
+        let configured = false;
+
+        // Determine API key source
+        if (config.apiKeyRef) {
+            // Check if the API key is resolved through the backend's API key manager first
+            if (backend.apiKeyManager && backend.apiKeyManager.hasRuntimeKey && backend.apiKeyManager.hasRuntimeKey(config.apiKeyRef)) {
+                apiKeySource = `Runtime Session: ${config.apiKeyRef} (✅ Set)`;
+                configured = true;
+            } else {
+                // Check if the environment variable is actually set
+                const envValue = process.env[config.apiKeyRef];
+                if (envValue) {
+                    apiKeySource = `Environment: ${config.apiKeyRef} (✅ Set)`;
+                    configured = true;
+                } else {
+                    apiKeySource = `Environment: ${config.apiKeyRef} (❌ Not Set)`;
+                }
+            }
+        } else if (backend.apiKey) {
+            apiKeySource = 'Runtime (Direct)';
+            configured = true;
+        } else if (config.provider === 'mockup') {
+            apiKeySource = 'Not required (Mock mode)';
+            configured = true;
+        }
+
+        return {
+            provider: config.provider || 'Unknown',
+            model: config.model || 'Unknown',
+            apiUrl: config.apiUrl || config.url || 'Not specified',
+            apiKeySource: apiKeySource,
+            configured: configured
+        };
     }
 
     /**

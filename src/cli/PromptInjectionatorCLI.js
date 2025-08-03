@@ -1,3 +1,4 @@
+
 /**
  * PromptInjectionatorCLI - Main CLI application class
  * 
@@ -33,6 +34,56 @@ export class PromptInjectionatorCLI {
         this.configManager = new ConfigurationManager();
         this.running = false;
         this.logger = console; // Simple console logger for CLI
+    }
+
+    /**
+     * Handle API key management
+     */
+    async handleApiKeys() {
+        console.log(chalk.cyan('\n🔑 Managing API Keys\n'));
+
+        const backendsConfigPath = path.join(process.cwd(), 'backends.json');
+        if (!fs.existsSync(backendsConfigPath)) {
+            console.log(chalk.red('❌ backends.json configuration file not found.'));
+            await this.pressEnterToContinue();
+            return;
+        }
+
+        try {
+            const backendsConfig = JSON.parse(fs.readFileSync(backendsConfigPath, 'utf8'));
+            const apiBackends = backendsConfig.backends.filter(b => b.requiresApiKey);
+
+            const choices = apiBackends.map(b => ({
+                name: `${b.name} - ${chalk.gray(b.description)}`,
+                value: b.apiKeyEnvVar
+            }));
+
+            const { selectedKey } = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'selectedKey',
+                    message: 'Select a backend to manage API key:',
+                    choices: choices
+                }
+            ]);
+
+            const { newKey } = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'newKey',
+                    message: `Enter the new API key for ${selectedKey}:`,
+                    validate: input => input.trim().length > 0 || 'API key cannot be empty'
+                }
+            ]);
+
+            this.session.apiKeyManager.addRuntimeKey(selectedKey, newKey);
+            console.log(chalk.green('✅ API Key updated for this session.'));
+
+        } catch (error) {
+            console.log(chalk.red(`❌ Error during API key management: ${error.message}`));
+        }
+
+        await this.pressEnterToContinue();
     }
 
     /**
@@ -156,6 +207,10 @@ export class PromptInjectionatorCLI {
   value:'select_backend'
 },
 {
+  name: '🔑 Manage API Keys',
+  value: 'api_keys'
+},
+{
   name: '⚙️  Manage Configuration',
   value: 'manage',
   disabled: !this.session.hasActiveInjectionator() ? 'No active injectionator' : false
@@ -203,6 +258,9 @@ export class PromptInjectionatorCLI {
                 break;
 case 'select_backend':
     await this.handleSelectBackend();
+    break;
+case 'api_keys':
+    await this.handleApiKeys();
     break;
 case 'execute':
     await this.handleExecutePrompt();
@@ -529,7 +587,20 @@ case 'execute':
         const summary = this.configManager.getConfigurationSummary(injectionator);
 
         console.log('Current Configuration:');
-        console.log(chalk.gray(JSON.stringify(summary, null, 2)));
+
+        // Enhanced display logic for configuration summary
+        console.log(chalk.bold('\nBackend Configuration:'));
+        console.log(`  - Backend Type: ${summary.backendType}`);
+        console.log(`  - Backend Name: ${summary.backendName}`);
+        console.log(`  - Backend Provider: ${summary.backendProvider || 'Unknown'}`);
+        console.log(`  - Backend Model: ${summary.backendModel || 'Unknown'}`);
+        console.log(`  - API URL: ${summary.backendApiUrl || 'Not specified'}`);
+        console.log(`  - API Key Source: ${summary.backendApiKeySource || 'Not specified'}`);
+        console.log(`  - Properly Configured: ${summary.backendConfigured ? 'Yes' : 'No'}`);
+        console.log('\nGeneral Information:');
+        console.log(`  - Name: ${summary.name}`);
+        console.log(`  - Description: ${summary.description}`);
+        console.log(`  - Valid: ${summary.valid}`);
 
         const { action } = await inquirer.prompt([{
             type: 'list',
@@ -1203,21 +1274,44 @@ case 'execute':
 
             // Handle API key requirements
             if (selectedBackend.requiresApiKey) {
-                const apiKey = process.env[selectedBackend.apiKeyEnvVar];
-                if (!apiKey) {
-                    console.log(chalk.yellow(`⚠️  ${selectedBackend.name} requires an API key.`));
-                    console.log(chalk.gray(`Please set the ${selectedBackend.apiKeyEnvVar} environment variable.`));
-                    console.log(chalk.gray('Continuing with mockup mode...'));
-                    config.provider = 'mockup';
-                } else {
-                    config.apiKeyRef = selectedBackend.apiKeyEnvVar;
-                }
+let apiKey = process.env[selectedBackend.apiKeyEnvVar];
+if (!apiKey) {
+    console.log(chalk.yellow(`⚠️  ${selectedBackend.name} requires an API key.`));
+    const { inputKey } = await inquirer.prompt([{
+        type: 'input',
+        name: 'inputKey',
+        message: `Enter API key for ${selectedBackend.name} (or set it via environment variable):`,
+        validate: input => input.trim().length > 0 || 'API key cannot be empty'
+    }]);
+
+    if (inputKey) {
+        console.log(chalk.green('✅ Using provided API key for this session.'));
+        this.session.apiKeyManager.addRuntimeKey(selectedBackend.apiKeyEnvVar, inputKey);
+        apiKey = inputKey;
+    } else {
+        console.log(chalk.gray('Continuing with mockup mode...'));
+        config.provider = 'mockup';
+    }
+}
+
+if (apiKey) {
+    console.log(chalk.green(`✅ Using API key for ${selectedBackend.name}`));
+    console.log(chalk.gray('Using real API...'));
+    config.provider = 'api'; // Use real API
+    config.apiKeyRef = selectedBackend.apiKeyEnvVar;
+}
             }
 
             const spinner = ora('Creating backend...').start();
             
             try {
                 const backend = await createBackend(selectedBackend.type, selectedBackend.name, config);
+                
+                // Connect the backend to our session's API key manager
+                if (backend.setApiKeyManager && this.session.apiKeyManager) {
+                    backend.setApiKeyManager(this.session.apiKeyManager);
+                }
+                
                 this.session.setActiveBackend(backend);
                 
                 spinner.stop();
