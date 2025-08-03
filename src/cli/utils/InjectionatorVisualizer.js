@@ -16,11 +16,12 @@ export class InjectionatorVisualizer {
     }
 
     static renderUserPrompt(prompt) {
-        return chalk.bold("
-┌─────────────────────────────────────────────────────────────┐
-│                    📝 USER PROMPT                           │") +
-`\n│  "${prompt}"  │\n` +
- chalk.bold('└─────────────────────────────────────────────────────────────┘');
+        const lines = [];
+        lines.push(chalk.bold('┌─────────────────────────────────────────────────────────────┐'));
+        lines.push(chalk.bold('│                    📝 USER PROMPT                           │'));
+        lines.push(`│  "${prompt}"  │`);
+        lines.push(chalk.bold('└─────────────────────────────────────────────────────────────┘'));
+        return lines.join('\n');
     }
 
     static renderSendChain(sendChain) {
@@ -43,13 +44,22 @@ export class InjectionatorVisualizer {
     }
 
     static renderBackendConfig(backend) {
-        const type = chalk.cyan(backend.constructor.name);
-        const endpoint = chalk.magenta(backend.config.endpoint || 'Not Configured');
-        return chalk.bold("
-┌─────────────────────────────────────────────────────────────┐") +
-`\n│                    🔗 BACKEND CONFIG                        │\n` +
-`│  Type: ${type} | Endpoint: ${endpoint}          │\n` +
- chalk.bold('└─────────────────────────────────────────────────────────────┘');
+        const lines = [];
+        lines.push(chalk.bold('┌─────────────────────────────────────────────────────────────┐'));
+        lines.push(chalk.bold('│                    🔗 BACKEND CONFIG                        │'));
+        
+        if (!backend) {
+            lines.push(chalk.gray('│  No backend configured                                      │'));
+        } else {
+            const type = chalk.cyan(backend.constructor.name);
+            const endpoint = backend.config && backend.config.endpoint ? 
+                chalk.magenta(backend.config.endpoint) : 
+                chalk.gray('Not Configured');
+            lines.push(`│  Type: ${type} | Endpoint: ${endpoint}          │`);
+        }
+        
+        lines.push(chalk.bold('└─────────────────────────────────────────────────────────────┘'));
+        return lines.join('\n');
     }
 
     static renderReceiveChain(receiveChain) {
