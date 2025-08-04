@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Button } from '../components/ui/button';
+---
+
+<Layout 
+  title="Prompt Injectionator - Test & Secure Your AI Applications" 
+  description="A professional tool for testing prompt injection attacks and securing LLM applications"
+>
+  <main class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div class="container mx-auto px-4 py-16">
+      <div class="text-center space-y-8">
+        <h1 class="text-6xl font-bold text-gray-900 dark:text-white">
+          Prompt <span class="text-blue-600 dark:text-blue-400">Injectionator</span>
+        </h1>
+        
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          A serious tool for testing and visualizing prompt injection attacks. 
+          Don't be a prompt injection hater — Get Prompt Injectionator!
+        </p>
+        
+        <div class="flex flex-wrap justify-center gap-4 mt-8">
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+            Get Started
+          </Button>
+          <Button variant="outline" size="lg">
+            View Documentation
+          </Button>
+        </div>
+        
+        <div class="grid md:grid-cols-4 gap-6 mt-16">
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Curious Newcomers</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">New to prompt injections? Start here to understand the basics.</p>
+          </div>
+          
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Beginners</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Ready to get started? Learn installation and basic usage.</p>
+          </div>
+          
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Intermediate Users</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Want to use it professionally? Comprehensive guides await.</p>
+          </div>
+          
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Advanced Developers</h3>
+            <p class="text-gray-600 dark:text-gray-300 text-sm">Extend and contribute? Dive into architecture and APIs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
