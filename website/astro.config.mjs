@@ -9,8 +9,14 @@ import react from '@astrojs/react';
 export default defineConfig({
   site: 'https://promptinjectionator.com',
   outDir: '../docs',
+  build: {
+    assets: '_astro'
+  },
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      assetsDir: '_astro'
+    }
   },
   integrations: [react()]
 });
