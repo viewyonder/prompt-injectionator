@@ -1,5 +1,7 @@
 # 7. Risks
 
+Mitigation for issues like API costs or false positives.
+
 Technical Risks:
 
  Risk identification

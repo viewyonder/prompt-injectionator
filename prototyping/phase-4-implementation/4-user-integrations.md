@@ -1,5 +1,7 @@
 # 4. User Integrations
 
+CLI/UI setup.
+
 Web UI getting prompts 
 Webhook for curl etc.
 CLI input from STDIN

@@ -1,5 +1,7 @@
 # 1. API Specification
 
+If backend-focused, use OpenAPI/Swagger for endpoints (e.g., POST /inject with prompt payload).
+
 Detection API:
 
  Endpoint definitions

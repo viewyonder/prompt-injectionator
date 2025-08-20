@@ -1,5 +1,7 @@
 # 2. Roadmap
 
+Map this to GitHub projects. Break into sprints, e.g., Week 1: Core engine PoC.
+
 Phase 1: Core Detection Engine
 
  Basic injection detection
