@@ -1,5 +1,7 @@
 # High-level Architecture
 
+Diagram core components (e.g., injection generator, evaluator, reporter) using blocks/arrows.
+
 System Context:
 
  Define system boundaries

@@ -1,5 +1,7 @@
 # 3. Data Architecture
 
+Define schemas for prompts, injections, results (e.g., JSON formats).
+
 Data Models:
 
  Prompt structures
