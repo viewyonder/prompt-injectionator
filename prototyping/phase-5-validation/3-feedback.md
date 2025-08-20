@@ -7,6 +7,7 @@ Plan for user testing or self-review.
 - Security researcher input
 - Continuous improvement process
 
+Plan how to get feedback. Add a simple "Was this detection correct? [Yes] [No]" button in the UI. This feedback is invaluable for finding weaknesses in tbe engine.
 
 Automate tests: Integrate with GitHub Actions.
 Iterate based on metrics: Run v2 against v1 benchmarks.
