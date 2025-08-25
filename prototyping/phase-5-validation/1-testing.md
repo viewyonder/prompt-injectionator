@@ -6,6 +6,8 @@ Create an Evaluation Dataset: Build a CSV or JSON file with hundreds of prompts.
 
 Benchmark: Run this dataset against your P1 engine and your P2 engine. This will give you concrete proof of improvement.
 
+Tools: Use Jest
+
 - Unit testing approach
 - Integration testing plan
 - Security testing methodology

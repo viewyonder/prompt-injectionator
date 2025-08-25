@@ -1,0 +1,942 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+docs/
+  CNAME
+  README.md
+prototyping/
+  docs/
+    0-docs-guidelines.md
+    1-adr.md
+    2-runbooks.md
+    3-troubleshooting.md
+    4-examples.md
+  phase-0-research/
+    1-academic-papers.md
+    2-industry-reports.md
+    3-personalities.md
+    4-products.md
+    5-benchmarks.md
+    6-target-users.md
+    7-deployment-model.md
+    8-ethics-and-safeguards.md
+    9-attacks-and-defenses.md
+    README.md
+  phase-1-requirements/
+    1-retrospective.md
+    2-functional-requirements.md
+    3-non-functional-requirements.md
+    4-constraints-and-assumptions.md
+    README.md
+  phase-2-design/
+    1-high-level-architecture.md
+    2-component-design.md
+    3-data-architecture.md
+    4-security-architecture.md
+    README.md
+  phase-3-specifications/
+    1-api-specification.md
+    2-web-ui-specification.md
+    3-integrations-specification.md
+    4-performance-specification.md
+    5-core-engine-specification.md
+    README.md
+  phase-4-implementation/
+    1-technology-stack.md
+    2-roadmap.md
+    3-core-engine.md
+    4-user-integrations.md
+    5-backend-integrations.md
+    6-observability.md
+    7-risks.md
+    8-sdlc-workflow.md
+    README.md
+  phase-5-validation/
+    1-testing.md
+    2-metrics.md
+    3-feedback.md
+    README.md
+  README.md
+LICENSE
+README.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="docs/CNAME">
+proto.promptinjectionator.com
+</file>
+
+<file path="docs/README.md">
+# Prompt Injectionator Prototype Website
+</file>
+
+<file path="prototyping/docs/0-docs-guidelines.md">
+# 0. Docs Guidelines
+
+Since this is a prototype, aim for "good enough" documentation—focus on clarity over perfection. 
+
+Use Markdown effectively with diagrams (e.g., via Mermaid or Draw.io embeds) for visuals.
+</file>
+
+<file path="prototyping/docs/1-adr.md">
+# 1. Architecture Decision Records
+</file>
+
+<file path="prototyping/docs/2-runbooks.md">
+# 2. Rumbooks
+
+How to run Prompt Injectionator.
+</file>
+
+<file path="prototyping/docs/3-troubleshooting.md">
+# 3. Troubleshooting
+
+How to troubleshoot Prompt Injectionator.
+</file>
+
+<file path="prototyping/docs/4-examples.md">
+# 4. Examples
+
+Practical examples of using Prompt Injectionator.
+</file>
+
+<file path="prototyping/phase-0-research/1-academic-papers.md">
+# 1. Academic Papers
+</file>
+
+<file path="prototyping/phase-0-research/2-industry-reports.md">
+# 2. Industry Reports
+</file>
+
+<file path="prototyping/phase-0-research/3-personalities.md">
+# 3. Personalities
+
+Like Simon Willison
+</file>
+
+<file path="prototyping/phase-0-research/4-products.md">
+# 4. Products
+</file>
+
+<file path="prototyping/phase-0-research/5-benchmarks.md">
+# 5. Benchmarks
+
+Like AgentDojo
+</file>
+
+<file path="prototyping/phase-0-research/6-target-users.md">
+# 6. Target Users
+
+Level 100-200-300-400
+Security bods
+App bods
+LLM bods
+Red-vs-Blue
+</file>
+
+<file path="prototyping/phase-0-research/7-deployment-model.md">
+# 7. Deployment Models
+
+- SaaS
+- npm CLI
+- Docker
+- Plugin 
+- Webhook / n8n/buildship/makehq/zap
+</file>
+
+<file path="prototyping/phase-0-research/8-ethics-and-safeguards.md">
+# 8. Ethics and Safeguards
+
+- Rate limiting
+- Abuse prevention
+- Prevent misuse while allowing research
+</file>
+
+<file path="prototyping/phase-0-research/9-attacks-and-defenses.md">
+# 9. Attacks and Defenses
+
+## State of the Art Attacks
+
+Go beyond basic direct injection. Document examples of:
+
+- Indirect Injection: Attacks hidden in retrieved documents or web pages.
+
+- Jailbreaking & Role-Playing: "Act as a..." or DAN ("Do Anything Now") style prompts.
+
+- Obfuscation: Using Base64, character substitution, or other languages to hide malicious instructions.
+
+- Multi-modal Injection: Hiding prompts in images or audio.
+
+## State of the Art Defenses
+
+Analyze what others are doing.
+
+- Pre-processing: Input sanitization, checking for known malicious patterns.
+
+- In-processing: Using instruction-tuned models as "guardrails" or LLM-based firewalls.
+
+- Post-processing: Checking the LLM's output for markers of a successful injection (e.g., "Sure, here is...") before sending it to the user or another tool.
+
+## Look at existing tools 
+
+What can you learn from projects like Rebuff.ai, Lakera, or NVIDIA NeMo Guardrails? What are their strengths and weaknesses?
+</file>
+
+<file path="prototyping/phase-0-research/README.md">
+# Phase 0 Research
+
+Useful people, papers, and products related to Prompt Injections.
+</file>
+
+<file path="prototyping/phase-1-requirements/1-retrospective.md">
+# 1. Retrospective
+
+What worked well?
+
+ List successful features/approaches
+ Identify user feedback highlights
+ Document technical wins
+
+
+What didn't work?
+
+ Pain points in implementation
+ Performance bottlenecks
+ Usability issues
+ Security gaps
+
+
+Key learnings from Prototype 1:
+
+ Technical insights
+ User behavior patterns
+ Threat model evolution
+ Integration challenges
+</file>
+
+<file path="prototyping/phase-1-requirements/4-constraints-and-assumptions.md">
+# 4. Constraints and Assumptions
+
+ Technical constraints
+ Resource limitations
+ Timeline constraints
+ Regulatory/compliance requirements
+</file>
+
+<file path="prototyping/phase-1-requirements/README.md">
+# Phase 1 Requirements
+
+INDEX HERE
+</file>
+
+<file path="prototyping/phase-4-implementation/8-sdlc-workflow.md">
+# 8. SDLC Workflow
+
+Development guidelines:
+
+- Github repo
+- Using Github Project
+- Issues and PRs for collaboration
+</file>
+
+<file path="prototyping/phase-5-validation/README.md">
+# Phase 5 Validation
+
+INDEX HERE
+</file>
+
+<file path="prototyping/README.md">
+# Prototyping
+
+This folder contains all the working documents to develop the prototype.
+</file>
+
+<file path="LICENSE">
+Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+</file>
+
+<file path="prototyping/phase-1-requirements/2-functional-requirements.md">
+# 2. Functional Requirements
+
+## MVP Focus
+ 
+What is the single most important function? Probably an API endpoint that takes a prompt and returns a risk score.
+
+Example User Stories:
+
+- "As a developer, I want to send a user-provided prompt to an API endpoint and get a simple verdict (e.g., SAFE, SUSPICIOUS, MALICIOUS) and a confidence score."
+
+- "As a security analyst, I want a simple web UI where I can paste a prompt to test the detection engine."
+
+## Core Capabilities
+
+- Prompt injection detection methods
+- Attack vector testing suite
+- Defense mechanism implementations
+- Real-time analysis features
+- Reporting and logging
+
+## User Workflows
+
+# Security researcher workflow
+# Developer integration workflow
+# Automated testing workflow
+# Incident response workflow
+</file>
+
+<file path="prototyping/phase-1-requirements/3-non-functional-requirements.md">
+# 3. Non-functional Requirements
+
+Latency: How fast must the detection be? A 2-second check is fine for analysis, but too slow for a real-time chatbot. Define a target (e.g., < 500ms).
+
+Cost: If you use an LLM for detection, what's your budget per-check?
+
+- Performance targets (latency, throughput)
+- Scalability requirements
+- Security standards compliance
+- Usability benchmarks
+- Browser/platform compatibility
+- Accessibility requirements
+</file>
+
+<file path="prototyping/phase-2-design/README.md">
+# Phase 2 Design
+
+High-level summary with design principles (e.g., modular, extensible).
+
+- Keep it modular: Design for pluggable attack types (e.g., via strategy pattern) to ease future expansions.
+- Use UML or simple flowcharts: Tools like PlantUML can generate from text.
+- Consider edge cases: E.g., handling rate limits on LLM APIs or non-deterministic responses.
+
+INDEX HERE
+</file>
+
+<file path="prototyping/phase-3-specifications/README.md">
+# Phase 3 Specifications
+
+- Each spec must match a requirement.
+- Each spec must match to a test.
+
+INDEX HERE
+</file>
+
+<file path="prototyping/phase-4-implementation/2-roadmap.md">
+# 2. Roadmap
+
+Map this to GitHub projects. Break into sprints, e.g., Week 1: Core engine PoC.
+
+Phase 1: Core Detection Engine
+
+ Basic injection detection
+ Pattern matching system
+ Simple API endpoints
+
+
+Phase 2: Attack Testing Suite
+
+ Attack vector database
+ Test automation
+ Result analysis
+
+
+Phase 3: Defense Mechanisms
+
+ Input sanitization
+ Response filtering
+ Anomaly detection
+
+
+Phase 4: User Interface
+
+ Dashboard development
+ Visualization components
+ User management
+
+
+Phase 5: Integration & Polish
+
+ LLM backend integration
+ Performance optimization
+ Documentation completion
+</file>
+
+<file path="prototyping/phase-4-implementation/7-risks.md">
+# 7. Risks
+
+Mitigation for issues like API costs or false positives.
+
+Technical Risks:
+
+ Risk identification
+ Impact assessment
+ Mitigation strategies
+ Contingency plans
+
+
+Project Risks:
+
+ Timeline risks
+ Resource risks
+ Dependency risks
+</file>
+
+<file path="prototyping/phase-4-implementation/README.md">
+# Phase 4 Implementation
+
+- Start with the core engine (phase-4-3) as the foundation
+- Build minimal viable integrations (1 user, 1 backend) first before expanding.
+- Consider a plugin architecture for different attack vectors
+- Plan for incremental releases rather than big-bang deployment
+</file>
+
+<file path="prototyping/phase-2-design/3-data-architecture.md">
+# 3. Data Architecture
+
+Define schemas for prompts, injections, results (e.g., JSON formats).
+
+Data Models:
+
+ Prompt structures
+ Attack patterns
+ Defense rules
+ Test results
+ User sessions
+
+
+Storage Strategy:
+
+ Persistence requirements
+ Performance considerations
+ Security requirements
+ Backup/recovery needs
+</file>
+
+<file path="prototyping/phase-3-specifications/2-web-ui-specification.md">
+# 2. Web UI Specification
+
+Wireframes for a simple dashboard (e.g., input form, results table). 3 components
+
+Top: Controls
+Left-hand: User inputs (via several methods)
+Middle: Mitigations (consecutive/concurrent)
+Right-hand: Backend app/llm
+Bottom: Observability
+
+Dashboard Components:
+
+ Detection console
+ Attack testing interface
+ Defense configuration panel
+ Analytics and reporting
+
+
+User Experience Flow:
+
+ Onboarding process
+ Primary user journeys
+ Error states and recovery
+ Help and documentation
+</file>
+
+<file path="prototyping/phase-3-specifications/3-integrations-specification.md">
+# 3. Integrations Specification
+
+Detail LLM APIs (e.g., OpenAI, Anthropic) or databases for logging.
+
+LLM Backend Integration:
+
+ Protocol definitions
+ Middleware requirements
+ Proxy configurations
+ Fallback mechanisms
+
+
+Third-party Integrations:
+
+ Security tools integration
+ Monitoring systems
+ CI/CD pipeline integration
+</file>
+
+<file path="prototyping/phase-3-specifications/4-performance-specification.md">
+# 4. Performance Specification
+
+Benchmarks, e.g., "Handle 100 injections/min."
+
+ Response time targets
+ Throughput requirements
+ Resource utilization limits
+ Scaling triggers and methods
+</file>
+
+<file path="prototyping/phase-4-implementation/1-technology-stack.md">
+# 1. Technology Stack
+
+Visualize as well as detailing each layer/component.
+Aim for simple (do we _need_ React, or can VanillaJS + JQuery do it?)
+
+
+Frontend:
+
+ Framework choice (React, Vue, vanilla JS)
+ UI component library
+ State management
+ Build tools
+
+
+Backend/Processing:
+
+ Runtime environment
+ Processing libraries
+ Database technology
+ Deployment platform
+</file>
+
+<file path="prototyping/phase-4-implementation/3-core-engine.md">
+# 3. Core Engine
+
+Code/docs for injection generation/evaluation.
+
+ Basic injection detection
+ Pattern matching system
+ Simple API endpoints
+ Logging and Observability
+</file>
+
+<file path="prototyping/phase-4-implementation/4-user-integrations.md">
+# 4. User Integrations
+
+CLI/UI setup.
+
+Web UI getting prompts 
+Webhook for curl etc.
+CLI input from STDIN
+CLI input from file
+Input from web url
+Piping
+</file>
+
+<file path="prototyping/phase-4-implementation/5-backend-integrations.md">
+# 5. Backend Integrations
+
+LLM connections, with fallbacks.
+
+LLMs
+API
+Chatbot
+Computer Use
+</file>
+
+<file path="prototyping/phase-4-implementation/6-observability.md">
+# 6. Observability
+
+Logging (e.g., with structlog), monitoring (e.g., Prometheus if scaled).
+
+Logging
+Visualization
+Replay
+</file>
+
+<file path="prototyping/phase-5-validation/1-testing.md">
+# 1. Testing
+
+Cover unit/integration (e.g., mock LLMs), end-to-end (e.g., full injection cycle).
+
+Create an Evaluation Dataset: Build a CSV or JSON file with hundreds of prompts. Include a mix of safe prompts, simple injections, and complex, obfuscated attacks. Label each one as safe or malicious.
+
+Benchmark: Run this dataset against your P1 engine and your P2 engine. This will give you concrete proof of improvement.
+
+- Unit testing approach
+- Integration testing plan
+- Security testing methodology
+- Performance testing plan
+- User acceptance criteria
+</file>
+
+<file path="prototyping/phase-5-validation/2-metrics.md">
+# 2. Success Metrics
+
+Define success KPIs, e.g., injection success rate, coverage of attack types.
+
+Detection Accuracy: Precision (how many of your alerts are real?) and Recall (how many of the real attacks did you catch?).
+
+Performance: Average API response time.
+
+- Detection accuracy targets
+- Performance benchmarks
+- User satisfaction goals
+- Security effectiveness measures
+</file>
+
+<file path="prototyping/phase-5-validation/3-feedback.md">
+# 3. Feedback
+
+Plan for user testing or self-review.
+
+- Beta testing program
+- User feedback collection
+- Security researcher input
+- Continuous improvement process
+
+Plan how to get feedback. Add a simple "Was this detection correct? [Yes] [No]" button in the UI. This feedback is invaluable for finding weaknesses in tbe engine.
+
+Automate tests: Integrate with GitHub Actions.
+Iterate based on metrics: Run v2 against v1 benchmarks.
+Gather feedback: Share on forums like Reddit's r/MachineLearning or GitHub discussions.
+</file>
+
+<file path="README.md">
+# Prompt Injectionator
+An LLM security tool to educate, test, detect, and mitigate prompt injections against LLM-based applications.
+
+By [Steve Chambers](https://www.linkedin.com/in/steviechambers/)
+
+> [!NOTE]
+> 2025-08-20 This is a prototype application current for educational purposes. Future milestones will ship a usable Web UI and Terminal CLI.
+</file>
+
+<file path="prototyping/phase-2-design/1-high-level-architecture.md">
+# High-level Architecture
+
+Diagram core components (e.g., injection generator, evaluator, reporter) using blocks/arrows.
+
+Four main components:
+
+- API Gateway: The public-facing entry point.
+
+- Core Engine: The "brains" that runs the detection logic.
+
+- Attack Signature Database: A place to store known injection patterns (maybe a simple JSON file or a vector database).
+
+- Web UI: A simple front-end for demonstration and testing.
+
+System Context:
+
+ Define system boundaries
+ Identify external actors
+ Map data flows
+ Define integration points
+
+
+Core Components:
+
+ Detection Engine
+ Attack Generator
+ Defense Layer
+ Analysis Dashboard
+ API Gateway
+ Data Storage
+</file>
+
+<file path="prototyping/phase-2-design/2-component-design.md">
+# 2. Component Design
+
+Detail modules, e.g., "Generator uses templates for attacks like DAN (Do Anything Now)."
+
+Detail the Core Engine. This is the secret sauce. It is a pipeline:
+
+Example Pipeline: 
+
+> Input -> Heuristic Filter (regex for 'ignore previous instructions') 
+-> Vector Similarity Check (compare against known attacks) 
+-> LLM Guardrail (ask a separate LLM 'Is this prompt malicious?') 
+-> Final Score Calculation.
+
+For each major component:
+
+ Purpose and responsibilities
+ Interfaces and contracts
+ Internal architecture
+ Dependencies
+ Configuration options
+</file>
+
+<file path="prototyping/phase-2-design/4-security-architecture.md">
+# 4. Security Architecture
+
+Critical here—outline safe defaults (e.g., sandboxed execution), ethical guidelines, and how to prevent the tool from being misused.
+
+- Threat model definition
+- Security controls design
+- Data protection mechanisms
+- Authentication/authorization
+- Audit logging strategy
+
+## Threat Modeling 
+ 
+ Think about how an attacker could abuse your service. Could they use your API to test and refine their own attacks? Implement rate limiting and authentication (simple API keys are fine for a prototype).
+</file>
+
+<file path="prototyping/phase-3-specifications/1-api-specification.md">
+# 1. API Specification
+
+If backend-focused, use OpenAPI/Swagger for endpoints (e.g., POST /inject with prompt payload).
+
+## Detection API
+
+ Endpoint definitions
+ Request/response formats
+ Error handling
+ Rate limiting
+
+## Testing API
+
+ Attack simulation endpoints
+ Batch testing capabilities
+ Result retrieval methods
+</file>
+
+<file path="prototyping/phase-3-specifications/5-core-engine-specification.md">
+# 5. Core Engine Specification
+
+Pseudo-code for the injection logic, e.g., combining base prompt with payloads.
+
+Specify the logic. How do you combine signals from your detection pipeline into a final score? Is it a weighted average? A simple rules engine?
+
+- Chaining mitigations
+- Parallel execution
+- Observability
+</file>
+
+</files>
